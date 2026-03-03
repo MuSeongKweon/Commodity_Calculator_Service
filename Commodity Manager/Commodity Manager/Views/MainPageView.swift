@@ -18,8 +18,11 @@ struct MainPageView: View {
         NavigationView {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(0..<10) { _ in
-                        MaterialCardView()
+                    ForEach(0..<10) { idx in
+                        NavigationLink(destination: MaterialDetailView(index: idx)) {
+                            MaterialCardView()
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 .padding()
