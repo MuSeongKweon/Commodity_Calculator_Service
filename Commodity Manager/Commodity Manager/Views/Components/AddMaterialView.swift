@@ -115,7 +115,7 @@ struct AddMaterialView: View {
                              price: price,
                              quantity: quantity,
                              image: selectedUIImage,
-                             color: selectedColor
+                             color: selectedColor  
                          )
                          materials.append(newMaterial)
                          dismiss()

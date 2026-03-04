@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum MaterialColor: String, CaseIterable, Hashable {
+enum MaterialColor: String, CaseIterable, Hashable { 
 
     case gray
     case red
