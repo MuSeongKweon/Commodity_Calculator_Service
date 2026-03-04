@@ -29,6 +29,13 @@ struct MainPageView: View {
     @State private var isEditing = false
     @State private var selectedItems = Set<UUID>()
 
+
+    // 삭제
+    func deleteSelected(){
+        materialsState.removeAll { selectedItems.contains($0.id) }
+        selectedItems.removeAll()
+        isEditing = false
+    }
     // 검색 실행 (실시간)
     func performSearch(){
         if searchText.isEmpty{
@@ -42,13 +49,6 @@ struct MainPageView: View {
             }
         }
         isSearchMode = true
-    }
-
-    // 삭제
-    func deleteSelected(){
-        materialsState.removeAll { selectedItems.contains($0.id) }
-        selectedItems.removeAll()
-        isEditing = false
     }
 
     var body: some View {
@@ -94,9 +94,27 @@ struct MainPageView: View {
                     .padding()
                 }
 
-                // 검색 overlay
-                if isSearching{
+                // 삭제 버튼
+                if isEditing{
+                    VStack{
+                        Spacer()
 
+                        Button(action:{
+                            deleteSelected()
+                        }){
+                            Text("삭제")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth:.infinity)
+                                .padding()
+                                .background(Color.red)
+                                .cornerRadius(12)
+                                .padding()
+                        }
+                    }
+                }
+                if isSearching{
+                    // 검색 overlay
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                         .onTapGesture {
@@ -130,26 +148,6 @@ struct MainPageView: View {
                         Spacer()
                     }
                 }
-
-                // 삭제 버튼
-                if isEditing{
-                    VStack{
-                        Spacer()
-
-                        Button(action:{
-                            deleteSelected()
-                        }){
-                            Text("삭제")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth:.infinity)
-                                .padding()
-                                .background(Color.red)
-                                .cornerRadius(12)
-                                .padding()
-                        }
-                    }
-                }
             }
 
             .navigationTitle("원자재")
@@ -167,7 +165,7 @@ struct MainPageView: View {
                 }
 
                 ToolbarItemGroup(placement:.navigationBarTrailing){
-
+                    
                     Button(action:{
                         withAnimation{
                             isSearching = true
