@@ -22,29 +22,26 @@ struct MainPageView: View {
     
     @State private var showAddView = false
 
-    // 🔴 Material 모델 사용
-    @State private var materialsState: [Material] = [
-//        Material(name: "사과", store: "과일상회", price: "5000", quantity: "10", image: nil),
-//        Material(name: "딸기", store: "마트", price: "7000", quantity: "5", image: nil),
-//        Material(name: "수박", store: "농산물시장", price: "15000", quantity: "3", image: nil)
-    ]
+    // Material 데이터
+    @State private var materialsState: [Material] = []
 
     // 편집 상태
     @State private var isEditing = false
     @State private var selectedItems = Set<UUID>()
 
-    // 검색
+    // 검색 실행 (실시간)
     func performSearch(){
         if searchText.isEmpty{
             searchResult = materialsState
         }else{
             searchResult = materialsState.filter{
-                $0.name.localizedCaseInsensitiveContains(searchText)
+                $0.name.localizedCaseInsensitiveContains(searchText) ||
+                $0.store.localizedCaseInsensitiveContains(searchText) ||
+                $0.price.localizedCaseInsensitiveContains(searchText) ||
+                $0.quantity.localizedCaseInsensitiveContains(searchText)
             }
         }
-
         isSearchMode = true
-        isSearching = false
     }
 
     // 삭제
@@ -102,14 +99,18 @@ struct MainPageView: View {
 
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
+                        .onTapGesture {
+                            // 🔴 검색창 외부 클릭 시 종료
+                            isSearching = false
+                            performSearch()
+                        }
 
                     VStack{
 
                         HStack{
 
                             TextField("재료 검색", text:$searchText)
-                                .submitLabel(.search)
-                                .onSubmit{
+                                .onChange(of: searchText) {
                                     performSearch()
                                 }
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
