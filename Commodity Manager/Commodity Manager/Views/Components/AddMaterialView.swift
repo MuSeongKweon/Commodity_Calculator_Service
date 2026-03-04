@@ -22,7 +22,10 @@ struct AddMaterialView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: Image?
     @State private var selectedUIImage: UIImage?
-
+    
+    // 🔴 추가
+    @State private var selectedColor: MaterialColor = .gray
+    
     var body: some View {
 
         NavigationView{
@@ -59,6 +62,32 @@ struct AddMaterialView: View {
                             }
                         }
                     }
+                    // 🔴 색상 선택 UI
+                    VStack(alignment:.leading){
+
+                        Text("카드 색상")
+                            .font(.headline)
+
+                        ScrollView(.horizontal, showsIndicators:false){
+
+                            HStack{
+
+                                ForEach(MaterialColor.allCases, id:\.self){ color in
+
+                                    Circle()
+                                        .fill(color.color)
+                                        .frame(width:40,height:40)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(selectedColor == color ? Color.black : Color.clear, lineWidth:3)
+                                        )
+                                        .onTapGesture {
+                                            selectedColor = color
+                                        }
+                                }
+                            }
+                        }
+                    }
 
                     // 재료 이름
                     TextField("재료 이름", text:$materialName)
@@ -79,26 +108,27 @@ struct AddMaterialView: View {
                     // 생성 버튼
                     Button(action:{
 
-                        if !materialName.isEmpty {
-                            let newMaterial = Material(
-                                name: materialName,
-                                store: storeName,
-                                price: price,
-                                quantity: quantity,
-                                image: selectedUIImage
-                            )
-                            materials.append(newMaterial)
-                            dismiss()
-                        }
+                     if !materialName.isEmpty {
+                         let newMaterial = Material(
+                             name: materialName,
+                             store: storeName,
+                             price: price,
+                             quantity: quantity,
+                             image: selectedUIImage,
+                             color: selectedColor
+                         )
+                         materials.append(newMaterial)
+                         dismiss()
+                     }
 
                     }){
-                        Text("생성")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth:.infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
+                     Text("생성")
+                         .font(.headline)
+                         .foregroundColor(.white)
+                         .frame(maxWidth:.infinity)
+                         .padding()
+                         .background(Color.blue)
+                         .cornerRadius(12)
                     }
 
                 }
