@@ -9,14 +9,14 @@ import SwiftUI
 
 struct MaterialCardView: View {
 
-    var name: String
-    var image: UIImage?
+    var material: Material
 
     var body: some View {
 
-        VStack(alignment: .leading){
+        VStack(alignment: .leading, spacing: 6){
 
-            if let image {
+            // 사진
+            if let image = material.image {
 
                 Image(uiImage: image)
                     .resizable()
@@ -33,13 +33,21 @@ struct MaterialCardView: View {
                     .cornerRadius(8)
             }
 
-            Text(name)
+            // 재료 이름
+            Text(material.name)
                 .font(.headline)
 
-            Text("구매처")
+            // 구매처
+            Text("구매처: \(material.store)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            // 가격
+            Text("가격: \(material.price)")
                 .font(.caption)
 
-            Text("남은 수량: 100")
+            // 수량
+            Text("수량: \(material.quantity)")
                 .font(.caption)
         }
 

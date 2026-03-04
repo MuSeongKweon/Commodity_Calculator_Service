@@ -67,7 +67,7 @@ struct MainPageView: View {
 
                                 ZStack(alignment:.topTrailing){
 
-                                    MaterialCardView(name: item.name)
+                                    MaterialCardView(material: item)
 
                                     if isEditing{
                                         Button(action:{
