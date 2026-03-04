@@ -5,9 +5,10 @@
 //  Created by MuSeong Kweon on 3/5/26.
 //
 
+
 import SwiftUI
 
-enum MaterialColor: String, CaseIterable, Hashable { 
+enum MaterialColor: String, CaseIterable, Hashable {
 
     case gray
     case red
