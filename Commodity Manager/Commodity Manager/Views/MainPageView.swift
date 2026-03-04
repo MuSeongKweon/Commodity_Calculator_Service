@@ -14,30 +14,40 @@ struct MainPageView: View {
         GridItem(.flexible())
     ]
 
-    // 🔴 추가
+    // 검색 상태
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var searchResult:[String] = []
     @State private var isSearchMode = false
 
-    // 더미 데이터
-    let materials = [
+    // 🔴 수정 (삭제 가능하도록 변경)
+    @State private var materialsState = [
         "사과","딸기","수박","Apple","Banana",
         "Milk","Sugar","밀가루","버터","초콜릿"
     ]
 
-    // 🔴 추가
+    // 🔴 추가 (편집 상태)
+    @State private var isEditing = false
+    @State private var selectedItems = Set<String>()
+
     func performSearch(){
         if searchText.isEmpty{
-            searchResult = materials
+            searchResult = materialsState
         }else{
-            searchResult = materials.filter{
+            searchResult = materialsState.filter{
                 $0.localizedCaseInsensitiveContains(searchText)
             }
         }
 
         isSearchMode = true
         isSearching = false
+    }
+
+    // 🔴 추가 삭제 함수
+    func deleteSelected(){
+        materialsState.removeAll { selectedItems.contains($0) }
+        selectedItems.removeAll()
+        isEditing = false
     }
 
     var body: some View {
@@ -50,13 +60,31 @@ struct MainPageView: View {
 
                     LazyVGrid(columns: columns, spacing: 16){
 
-                        // 🔴 수정
-                        ForEach(isSearchMode ? searchResult : materials, id:\.self){ item in
+                        ForEach(isSearchMode ? searchResult : materialsState, id:\.self){ item in
 
-                            NavigationLink(destination: MaterialDetailView(index: 0)){
+                            ZStack(alignment:.topTrailing){
+
                                 MaterialCardView(name: item)
+
+                                // 🔴 편집모드 선택 표시
+                                if isEditing{
+                                    Button(action:{
+                                        if selectedItems.contains(item){
+                                            selectedItems.remove(item)
+                                        } else{
+                                            selectedItems.insert(item)
+                                        }
+                                    }){
+                                        Image(systemName:
+                                                selectedItems.contains(item)
+                                                ? "checkmark.circle.fill"
+                                                : "circle")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
+                                            .padding(6)
+                                    }
+                                }
                             }
-                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding()
@@ -73,13 +101,10 @@ struct MainPageView: View {
                         HStack{
 
                             TextField("재료 검색", text:$searchText)
-
-                                // 🔴 추가 (엔터 처리)
                                 .submitLabel(.search)
                                 .onSubmit{
                                     performSearch()
                                 }
-
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
                             Button("취소"){
@@ -97,6 +122,26 @@ struct MainPageView: View {
                         Spacer()
                     }
                 }
+
+                // 🔴 삭제 버튼 UI
+                if isEditing{
+                    VStack{
+                        Spacer()
+
+                        Button(action:{
+                            deleteSelected()
+                        }){
+                            Text("삭제")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth:.infinity)
+                                .padding()
+                                .background(Color.red)
+                                .cornerRadius(12)
+                                .padding()
+                        }
+                    }
+                }
             }
 
             .navigationTitle("원자재")
@@ -111,7 +156,6 @@ struct MainPageView: View {
 
                 ToolbarItemGroup(placement:.navigationBarTrailing){
 
-                    // 🔴 수정
                     Button(action:{
                         withAnimation{
                             isSearching = true
@@ -120,7 +164,11 @@ struct MainPageView: View {
                         Image(systemName:"magnifyingglass")
                     }
 
-                    Button(action:{}){
+                    // 🔴 편집 버튼 동작
+                    Button(action:{
+                        isEditing.toggle()
+                        selectedItems.removeAll()
+                    }){
                         Image(systemName:"square.and.pencil")
                     }
                 }
