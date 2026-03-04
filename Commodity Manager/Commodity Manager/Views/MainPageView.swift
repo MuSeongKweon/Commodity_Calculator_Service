@@ -19,24 +19,21 @@ struct MainPageView: View {
     @State private var searchText = ""
     @State private var searchResult:[Material] = []
     @State private var isSearchMode = false
-    
+
     @State private var showAddView = false
+
+    // 필터 상태
+    @State private var showFilter = false
+    @State private var selectedFilter: FilterType?
 
     // Material 데이터
     @State private var materialsState: [Material] = []
 
     // 편집 상태
-    @State private var isEditing = false //feature/edit-delete-material
-    @State private var selectedItems = Set<UUID>() //feature/edit-delete-material
+    @State private var isEditing = false
+    @State private var selectedItems = Set<UUID>()
 
-
-    // 삭제
-    func deleteSelected(){
-        materialsState.removeAll { selectedItems.contains($0.id) }
-        selectedItems.removeAll()
-        isEditing = false
-    } //feature/edit-delete-material
-    // 검색 실행 (실시간)
+    // 검색
     func performSearch(){
         if searchText.isEmpty{
             searchResult = materialsState
@@ -51,6 +48,44 @@ struct MainPageView: View {
         isSearchMode = true
     }
 
+    // 삭제
+    func deleteSelected(){
+        materialsState.removeAll { selectedItems.contains($0.id) }
+        selectedItems.removeAll()
+        isEditing = false
+    }
+
+    // 필터 정렬
+    func sortedMaterials(_ materials:[Material]) -> [Material] {
+
+        guard let selectedFilter else { return materials }
+
+        switch selectedFilter {
+
+        case .alphabetical:
+            return materials.sorted{ $0.name < $1.name }
+
+        case .color:
+            return materials.sorted{ ($0.image?.description ?? "") < ($1.image?.description ?? "") }
+
+        case .newest:
+            return materials.sorted{ $0.id.uuidString > $1.id.uuidString }
+
+        case .oldest:
+            return materials.sorted{ $0.id.uuidString < $1.id.uuidString }
+
+        case .quantity:
+            return materials.sorted{
+                Int($0.quantity) ?? 0 < Int($1.quantity) ?? 0
+            }
+
+        case .price:
+            return materials.sorted{
+                Int($0.price) ?? 0 < Int($1.price) ?? 0
+            }
+        }
+    }
+
     var body: some View {
 
         NavigationView {
@@ -61,7 +96,7 @@ struct MainPageView: View {
 
                     LazyVGrid(columns: columns, spacing: 16){
 
-                        ForEach(isSearchMode ? searchResult : materialsState) { item in
+                        ForEach(sortedMaterials(isSearchMode ? searchResult : materialsState)) { item in
 
                             NavigationLink(destination: MaterialDetailView(material: item)) {
 
@@ -69,7 +104,7 @@ struct MainPageView: View {
 
                                     MaterialCardView(material: item)
 
-                                    if isEditing{ //feature/edit-delete-material
+                                    if isEditing{
                                         Button(action:{
                                             if selectedItems.contains(item.id){
                                                 selectedItems.remove(item.id)
@@ -94,31 +129,12 @@ struct MainPageView: View {
                     .padding()
                 }
 
-                // 삭제 버튼
-                if isEditing{ //feature/edit-delete-material
-                    VStack{
-                        Spacer()
-
-                        Button(action:{
-                            deleteSelected()
-                        }){
-                            Text("삭제")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth:.infinity)
-                                .padding()
-                                .background(Color.red)
-                                .cornerRadius(12)
-                                .padding()
-                        }
-                    }
-                }
+                // 검색 overlay
                 if isSearching{
-                    // 검색 overlay
+
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            // 🔴 검색창 외부 클릭 시 종료
                             isSearching = false
                             performSearch()
                         }
@@ -148,15 +164,31 @@ struct MainPageView: View {
                         Spacer()
                     }
                 }
-            }
 
+                // 삭제 버튼
+                if isEditing{
+                    VStack{
+                        Spacer()
+
+                        Button(action:{
+                            deleteSelected()
+                        }){
+                            Text("삭제")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth:.infinity)
+                                .padding()
+                                .background(Color.red)
+                                .cornerRadius(12)
+                                .padding()
+                        }
+                    }
+                }
+            }
+            
             .navigationTitle("원자재")
             
-            .sheet(isPresented: $showAddView) {
-                AddMaterialView(materials: $materialsState)
-            }
-            
-            .toolbar{
+            .toolbar {
 
                 ToolbarItem(placement:.navigationBarLeading){
                     Button(action:{}){
@@ -165,6 +197,12 @@ struct MainPageView: View {
                 }
 
                 ToolbarItemGroup(placement:.navigationBarTrailing){
+
+                    Button {
+                        showFilter = true
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
                     
                     Button(action:{
                         withAnimation{
@@ -173,20 +211,29 @@ struct MainPageView: View {
                     }){
                         Image(systemName:"magnifyingglass")
                     }
-                    
+
                     Button(action:{
                         showAddView = true
                     }){
                         Image(systemName:"plus")
                     }
 
-                    Button(action:{ //feature/edit-delete-material
+                    Button(action:{
                         isEditing.toggle()
                         selectedItems.removeAll()
                     }){
                         Image(systemName:"square.and.pencil")
                     }
                 }
+            }
+
+            .sheet(isPresented: $showAddView) {
+                AddMaterialView(materials: $materialsState)
+            }
+
+            // 필터 시트
+            .sheet(isPresented:$showFilter){
+                FilterView(selectedFilter: $selectedFilter)
             }
         }
     }
