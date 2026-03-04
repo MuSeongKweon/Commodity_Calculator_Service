@@ -26,8 +26,8 @@ struct MainPageView: View {
     @State private var materialsState: [Material] = []
 
     // 편집 상태
-    @State private var isEditing = false
-    @State private var selectedItems = Set<UUID>()
+    @State private var isEditing = false //feature/edit-delete-material
+    @State private var selectedItems = Set<UUID>() //feature/edit-delete-material
 
 
     // 삭제
@@ -35,7 +35,7 @@ struct MainPageView: View {
         materialsState.removeAll { selectedItems.contains($0.id) }
         selectedItems.removeAll()
         isEditing = false
-    }
+    } //feature/edit-delete-material
     // 검색 실행 (실시간)
     func performSearch(){
         if searchText.isEmpty{
@@ -69,7 +69,7 @@ struct MainPageView: View {
 
                                     MaterialCardView(material: item)
 
-                                    if isEditing{
+                                    if isEditing{ //feature/edit-delete-material
                                         Button(action:{
                                             if selectedItems.contains(item.id){
                                                 selectedItems.remove(item.id)
@@ -95,7 +95,7 @@ struct MainPageView: View {
                 }
 
                 // 삭제 버튼
-                if isEditing{
+                if isEditing{ //feature/edit-delete-material
                     VStack{
                         Spacer()
 
@@ -180,7 +180,7 @@ struct MainPageView: View {
                         Image(systemName:"plus")
                     }
 
-                    Button(action:{
+                    Button(action:{ //feature/edit-delete-material
                         isEditing.toggle()
                         selectedItems.removeAll()
                     }){
