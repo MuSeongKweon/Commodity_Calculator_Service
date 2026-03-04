@@ -65,7 +65,7 @@ struct AddMaterialView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
 
                     // 가게 이름
-                    TextField("구매 가게", text:$storeName)
+                    TextField("구매처", text:$storeName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
 
                     // 가격
