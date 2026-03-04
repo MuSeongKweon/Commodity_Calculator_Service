@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct MaterialCardView: View {
+    
+    var name: String
+    
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(alignment: .leading, spacing: 8) {

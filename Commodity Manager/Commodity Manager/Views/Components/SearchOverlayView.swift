@@ -7,23 +7,28 @@
 
 import SwiftUI
 
-struct SearchBar: View {
+struct SearchOverlayView: View {
 
-    @Binding var text: String
+    @Binding var searchText: String
+    @Binding var isSearching: Bool
 
     var body: some View {
-        HStack {
-            Image(systemName: "magnifyingglass")
-            TextField("검색...", text: $text)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            Button(action: { text = "" }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.gray)
+
+        VStack {
+            HStack {
+                TextField("검색", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                Button("취소") {
+                    searchText = ""
+                    isSearching = false
+                }
             }
+            .padding()
+
+            Spacer()
         }
-        .padding(8)
-        .background(Color.white)
-        .cornerRadius(10)
-        .shadow(radius: 2)
+        .background(Color.black.opacity(0.35))
+        .ignoresSafeArea()
     }
 }
