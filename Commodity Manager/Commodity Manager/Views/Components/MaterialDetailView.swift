@@ -8,31 +8,61 @@
 import SwiftUI
 
 struct MaterialDetailView: View {
-    var index: Int
+
+    var material: Material
 
     var body: some View {
-        VStack(spacing: 16) {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 200)
-                .cornerRadius(12)
 
-            Text("재료 이름")
-                .font(.largeTitle)
+        ScrollView {
 
-            Text("구매처: ABC 상회")
+            VStack(spacing:20) {
+
+                if let image = material.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height:200)
+                        .cornerRadius(12)
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height:200)
+                        .cornerRadius(12)
+                }
+
+                VStack(alignment:.leading, spacing:12) {
+
+                    HStack {
+                        Text("재료 이름")
+                        Spacer()
+                        Text(material.name)
+                    }
+
+                    HStack {
+                        Text("구매 가게")
+                        Spacer()
+                        Text(material.store)
+                    }
+
+                    HStack {
+                        Text("가격")
+                        Spacer()
+                        Text(material.price)
+                    }
+
+                    HStack {
+                        Text("수량")
+                        Spacer()
+                        Text(material.quantity)
+                    }
+                }
                 .font(.title3)
-                .foregroundColor(.gray)
+                .padding()
 
-            Text("총 가격: 10,000원")
-                .font(.title2)
-
-            Text("남은 수량: 500g")
-                .font(.title2)
-
-            Spacer()
+                Spacer()
+            }
+            .padding()
         }
-        .padding()
-        .navigationTitle("상세정보")
+        .navigationTitle("재료 상세")
     }
 }

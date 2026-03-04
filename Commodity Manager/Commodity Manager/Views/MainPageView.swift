@@ -17,25 +17,29 @@ struct MainPageView: View {
     // 검색 상태
     @State private var isSearching = false
     @State private var searchText = ""
-    @State private var searchResult:[String] = []
+    @State private var searchResult:[Material] = []
     @State private var isSearchMode = false
+    
+    @State private var showAddView = false
 
-    // 🔴 수정 (삭제 가능하도록 변경)
-    @State private var materialsState = [
-        "사과","딸기","수박","Apple","Banana",
-        "Milk","Sugar","밀가루","버터","초콜릿"
+    // 🔴 Material 모델 사용
+    @State private var materialsState: [Material] = [
+//        Material(name: "사과", store: "과일상회", price: "5000", quantity: "10", image: nil),
+//        Material(name: "딸기", store: "마트", price: "7000", quantity: "5", image: nil),
+//        Material(name: "수박", store: "농산물시장", price: "15000", quantity: "3", image: nil)
     ]
 
-    // 🔴 추가 (편집 상태)
+    // 편집 상태
     @State private var isEditing = false
-    @State private var selectedItems = Set<String>()
+    @State private var selectedItems = Set<UUID>()
 
+    // 검색
     func performSearch(){
         if searchText.isEmpty{
             searchResult = materialsState
         }else{
             searchResult = materialsState.filter{
-                $0.localizedCaseInsensitiveContains(searchText)
+                $0.name.localizedCaseInsensitiveContains(searchText)
             }
         }
 
@@ -43,9 +47,9 @@ struct MainPageView: View {
         isSearching = false
     }
 
-    // 🔴 추가 삭제 함수
+    // 삭제
     func deleteSelected(){
-        materialsState.removeAll { selectedItems.contains($0) }
+        materialsState.removeAll { selectedItems.contains($0.id) }
         selectedItems.removeAll()
         isEditing = false
     }
@@ -60,31 +64,34 @@ struct MainPageView: View {
 
                     LazyVGrid(columns: columns, spacing: 16){
 
-                        ForEach(isSearchMode ? searchResult : materialsState, id:\.self){ item in
+                        ForEach(isSearchMode ? searchResult : materialsState) { item in
 
-                            ZStack(alignment:.topTrailing){
+                            NavigationLink(destination: MaterialDetailView(material: item)) {
 
-                                MaterialCardView(name: item)
+                                ZStack(alignment:.topTrailing){
 
-                                // 🔴 편집모드 선택 표시
-                                if isEditing{
-                                    Button(action:{
-                                        if selectedItems.contains(item){
-                                            selectedItems.remove(item)
-                                        } else{
-                                            selectedItems.insert(item)
+                                    MaterialCardView(name: item.name)
+
+                                    if isEditing{
+                                        Button(action:{
+                                            if selectedItems.contains(item.id){
+                                                selectedItems.remove(item.id)
+                                            } else{
+                                                selectedItems.insert(item.id)
+                                            }
+                                        }){
+                                            Image(systemName:
+                                                    selectedItems.contains(item.id)
+                                                    ? "checkmark.circle.fill"
+                                                    : "circle")
+                                                .font(.title2)
+                                                .foregroundColor(.blue)
+                                                .padding(6)
                                         }
-                                    }){
-                                        Image(systemName:
-                                                selectedItems.contains(item)
-                                                ? "checkmark.circle.fill"
-                                                : "circle")
-                                            .font(.title2)
-                                            .foregroundColor(.blue)
-                                            .padding(6)
                                     }
                                 }
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding()
@@ -123,7 +130,7 @@ struct MainPageView: View {
                     }
                 }
 
-                // 🔴 삭제 버튼 UI
+                // 삭제 버튼
                 if isEditing{
                     VStack{
                         Spacer()
@@ -145,7 +152,11 @@ struct MainPageView: View {
             }
 
             .navigationTitle("원자재")
-
+            
+            .sheet(isPresented: $showAddView) {
+                AddMaterialView(materials: $materialsState)
+            }
+            
             .toolbar{
 
                 ToolbarItem(placement:.navigationBarLeading){
@@ -163,8 +174,13 @@ struct MainPageView: View {
                     }){
                         Image(systemName:"magnifyingglass")
                     }
+                    
+                    Button(action:{
+                        showAddView = true
+                    }){
+                        Image(systemName:"plus")
+                    }
 
-                    // 🔴 편집 버튼 동작
                     Button(action:{
                         isEditing.toggle()
                         selectedItems.removeAll()
