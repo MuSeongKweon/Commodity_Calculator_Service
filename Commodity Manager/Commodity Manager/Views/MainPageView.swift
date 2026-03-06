@@ -222,7 +222,7 @@ struct MainPageView: View {
                         isEditing.toggle()
                         selectedItems.removeAll()
                     }){
-                        Image(systemName:"square.and.pencil")
+                        Image(systemName:"trash")
                     }
                 }
             }
