@@ -98,32 +98,63 @@ struct MainPageView: View {
 
                         ForEach(sortedMaterials(isSearchMode ? searchResult : materialsState)) { item in
 
+                            /* 기존 값 전달
                             NavigationLink(destination: MaterialDetailView(material: item)) {
+                            */
+                            if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
+                                NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
 
-                                ZStack(alignment:.topTrailing){
+                                    ZStack(alignment:.topTrailing){
 
-                                    MaterialCardView(material: item)
+                                        MaterialCardView(material: item)
 
-                                    if isEditing{
-                                        Button(action:{
-                                            if selectedItems.contains(item.id){
-                                                selectedItems.remove(item.id)
-                                            } else{
-                                                selectedItems.insert(item.id)
+                                        if isEditing{
+                                            Button(action:{
+                                                if selectedItems.contains(item.id){
+                                                    selectedItems.remove(item.id)
+                                                } else{
+                                                    selectedItems.insert(item.id)
+                                                }
+                                            }){
+                                                Image(systemName:
+                                                        selectedItems.contains(item.id)
+                                                        ? "checkmark.circle.fill"
+                                                        : "circle")
+                                                    .font(.title2)
+                                                    .foregroundColor(.blue)
+                                                    .padding(6)
                                             }
-                                        }){
-                                            Image(systemName:
-                                                    selectedItems.contains(item.id)
-                                                    ? "checkmark.circle.fill"
-                                                    : "circle")
-                                                .font(.title2)
-                                                .foregroundColor(.blue)
-                                                .padding(6)
                                         }
                                     }
                                 }
+                                .buttonStyle(.plain)
+                            } else {
+                                // Fallback: 바인딩을 찾지 못한 경우 읽기 전용으로 표시
+                                NavigationLink(destination: MaterialDetailView(material: .constant(item))) {
+                                    ZStack(alignment:.topTrailing){
+                                        MaterialCardView(material: item)
+                                        if isEditing{
+                                            Button(action:{
+                                                if selectedItems.contains(item.id){
+                                                    selectedItems.remove(item.id)
+                                                } else{
+                                                    selectedItems.insert(item.id)
+                                                }
+                                            }){
+                                                Image(systemName:
+                                                        selectedItems.contains(item.id)
+                                                        ? "checkmark.circle.fill"
+                                                        : "circle")
+                                                    .font(.title2)
+                                                    .foregroundColor(.blue)
+                                                    .padding(6)
+                                            }
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(PlainButtonStyle())
+
                         }
                     }
                     .padding()
@@ -157,7 +188,7 @@ struct MainPageView: View {
                         }
 
                         .padding()
-                        .background(Color.white)
+                        .background(.ultraThinMaterial)
                         .cornerRadius(12)
                         .padding()
 
@@ -222,7 +253,7 @@ struct MainPageView: View {
                         isEditing.toggle()
                         selectedItems.removeAll()
                     }){
-                        Image(systemName:"square.and.pencil")
+                        Image(systemName:"trash")
                     }
                 }
             }
@@ -238,3 +269,4 @@ struct MainPageView: View {
         }
     }
 }
+

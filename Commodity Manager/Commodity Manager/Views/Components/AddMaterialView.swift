@@ -118,7 +118,6 @@ struct AddMaterialView: View {
                              quantity: quantity,
                              image: selectedUIImage,
                              color: selectedColor
-                             //add feature
                          )
                          materials.append(newMaterial)
                          dismiss()
