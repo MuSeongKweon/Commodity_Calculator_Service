@@ -16,4 +16,5 @@ struct Material: Identifiable, Hashable {
     var price: String
     var quantity: String
     var image: UIImage?
+    var color: MaterialColor = .gray
 }

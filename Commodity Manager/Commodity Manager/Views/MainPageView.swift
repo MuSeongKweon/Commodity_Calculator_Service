@@ -157,7 +157,7 @@ struct MainPageView: View {
                         }
 
                         .padding()
-                        .background(Color.white)
+                        .background(.ultraThinMaterial)
                         .cornerRadius(12)
                         .padding()
 
@@ -238,3 +238,4 @@ struct MainPageView: View {
         }
     }
 }
+

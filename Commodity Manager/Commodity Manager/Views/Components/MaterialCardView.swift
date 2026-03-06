@@ -11,6 +11,11 @@ struct MaterialCardView: View {
 
     var material: Material
 
+    private var materialBackgroundColor: Color {
+        // Use the material's color if available
+        material.color.color
+    }
+
     var body: some View {
 
         VStack(alignment: .leading, spacing: 6){
@@ -52,7 +57,7 @@ struct MaterialCardView: View {
         }
 
         .padding()
-        .background(Color.white)
+        .background(materialBackgroundColor)
         .cornerRadius(10)
         .shadow(radius:2)
     }
