@@ -6,6 +6,7 @@
 //  Filter again in git 3/5/26
 
 import SwiftUI
+import PhotosUI
 
 struct MaterialDetailView: View {
 
@@ -20,9 +21,12 @@ struct MaterialDetailView: View {
     @State private var editedQuantity: String = ""
     @State private var editedImage: UIImage? = nil
     @State private var showImagePicker = false
+    // 🔴 PhotosPicker 상태
+    @State private var selectedItem: PhotosPickerItem?
     
     //❗️색상 편집 추가
     @State private var editedColor: MaterialColor = .gray
+    
 
     var body: some View {
 
@@ -44,7 +48,12 @@ struct MaterialDetailView: View {
                             .cornerRadius(12)
                     }
                     HStack {
-                        Button("사진 변경") { showImagePicker = true }
+                        // 기존: 수동 시트 토글 방식 (주석 처리)
+                        // Button("사진 변경") { showImagePicker = true }
+                        // 새 구현: PhotosPicker 사용
+                        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                            Text("사진 변경")
+                        }
                         Spacer()
                         Button("사진 제거") { editedImage = nil }
                     }
@@ -186,21 +195,32 @@ struct MaterialDetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $showImagePicker) {
-            VStack(spacing: 16) {
-                Text("이미지 선택은 추후 구현")
-                Button("더미 이미지 적용") {
-                    let renderer = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 200))
-                    let img = renderer.image { ctx in
-                        UIColor.systemTeal.setFill()
-                        ctx.fill(CGRect(x: 0, y: 0, width: 200, height: 200))
-                    }
-                    editedImage = img
-                    showImagePicker = false
+        // 기존: 더미 이미지 시트 (주석 처리)
+        // .sheet(isPresented: $showImagePicker) {
+        //     VStack(spacing: 16) {
+        //         Text("이미지 선택은 추후 구현")
+        //         Button("더미 이미지 적용") {
+        //             let renderer = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 200))
+        //             let img = renderer.image { ctx in
+        //                 UIColor.systemTeal.setFill()
+        //                 ctx.fill(CGRect(x: 0, y: 0, width: 200, height: 200))
+        //             }
+        //             editedImage = img
+        //             showImagePicker = false
+        //         }
+        //         Button("닫기") { showImagePicker = false }
+        //     }
+        //     .padding()
+        // }
+        // 새 구현: PhotosPicker 선택 변경 시 이미지 로드
+        .onChange(of: selectedItem) { oldValue, newValue in
+            guard let newValue else { return }
+            Task {
+                if let data = try? await newValue.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    editedImage = uiImage
                 }
-                Button("닫기") { showImagePicker = false }
             }
-            .padding()
         }
         .onAppear {
             editedName = material.name
@@ -211,3 +231,4 @@ struct MaterialDetailView: View {
         }
     }
 }
+
