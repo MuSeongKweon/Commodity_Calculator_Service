@@ -98,9 +98,6 @@ struct MainPageView: View {
 
                         ForEach(sortedMaterials(isSearchMode ? searchResult : materialsState)) { item in
 
-                            /* 기존 값 전달
-                            NavigationLink(destination: MaterialDetailView(material: item)) {
-                            */
                             if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
                                 NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
 

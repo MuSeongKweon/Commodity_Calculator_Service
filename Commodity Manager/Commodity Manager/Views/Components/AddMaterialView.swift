@@ -24,7 +24,7 @@ struct AddMaterialView: View {
     @State private var selectedUIImage: UIImage?
     
     
-    // 🔴 추가 add feature
+    // 색상 관련
     @State private var selectedColor: MaterialColor = .gray
     
     var body: some View {
@@ -64,7 +64,7 @@ struct AddMaterialView: View {
                         }
                     }
                     
-                    // 🔴 색상 선택 UI add feature
+                    // 색상 선택 UI add feature
                     VStack(alignment:.leading){
 
                         Text("카드 색상")
