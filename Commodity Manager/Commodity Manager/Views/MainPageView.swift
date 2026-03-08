@@ -95,9 +95,12 @@ struct MainPageView: View {
             }
 
         case .price:
-            return materials.sorted{
-                Int($0.price) ?? 0 < Int($1.price) ?? 0
-            }
+            // 기존: 총액(price)만 비교
+            // return materials.sorted{
+            //     Int($0.price) ?? 0 < Int($1.price) ?? 0
+            // }
+            // 변경: 단가(가격/수량) 비교 - 계산 프로퍼티 사용
+            return materials.sorted { $0.unitPrice < $1.unitPrice }
         }
     }
 
