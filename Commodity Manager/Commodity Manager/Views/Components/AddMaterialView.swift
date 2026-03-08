@@ -111,13 +111,27 @@ struct AddMaterialView: View {
                     Button(action:{
 
                      if !materialName.isEmpty {
+                         // 기존: 타임스탬프 미설정 (이니셜라이저 기본값 의존)
+                         // let newMaterial = Material(
+                         //     name: materialName,
+                         //     store: storeName,
+                         //     price: price,
+                         //     quantity: quantity,
+                         //     image: selectedUIImage,
+                         //     color: selectedColor
+                         // )
+
+                         // 변경: 타임스탬프 명시 설정
+                         let now = Date()
                          let newMaterial = Material(
                              name: materialName,
                              store: storeName,
                              price: price,
                              quantity: quantity,
                              image: selectedUIImage,
-                             color: selectedColor
+                             color: selectedColor,
+                             createdAt: now,
+                             updatedAt: now
                          )
                          materials.append(newMaterial)
                          dismiss()

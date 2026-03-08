@@ -181,6 +181,9 @@ struct MaterialDetailView: View {
                         material.image = editedImage
                         //❗️색상 업데이트
                         material.color = editedColor
+                        // 변경: 수정 시간 갱신
+                        // 기존: 수정 시간 미갱신
+                        material.updatedAt = Date()
                     } else {
                         // 편집 시작 시 현재 값 로드
                         editedName = material.name
