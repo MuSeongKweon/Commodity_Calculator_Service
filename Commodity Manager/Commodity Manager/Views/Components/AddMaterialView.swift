@@ -24,7 +24,7 @@ struct AddMaterialView: View {
     @State private var selectedUIImage: UIImage?
     
     
-    // 🔴 추가 add feature
+    // 색상 관련
     @State private var selectedColor: MaterialColor = .gray
     
     var body: some View {
@@ -64,7 +64,7 @@ struct AddMaterialView: View {
                         }
                     }
                     
-                    // 🔴 색상 선택 UI add feature
+                    // 색상 선택 UI add feature
                     VStack(alignment:.leading){
 
                         Text("카드 색상")
@@ -111,13 +111,27 @@ struct AddMaterialView: View {
                     Button(action:{
 
                      if !materialName.isEmpty {
+                         // 기존: 타임스탬프 미설정 (이니셜라이저 기본값 의존)
+                         // let newMaterial = Material(
+                         //     name: materialName,
+                         //     store: storeName,
+                         //     price: price,
+                         //     quantity: quantity,
+                         //     image: selectedUIImage,
+                         //     color: selectedColor
+                         // )
+
+                         // 변경: 타임스탬프 명시 설정
+                         let now = Date()
                          let newMaterial = Material(
                              name: materialName,
                              store: storeName,
                              price: price,
                              quantity: quantity,
                              image: selectedUIImage,
-                             color: selectedColor
+                             color: selectedColor,
+                             createdAt: now,
+                             updatedAt: now
                          )
                          materials.append(newMaterial)
                          dismiss()

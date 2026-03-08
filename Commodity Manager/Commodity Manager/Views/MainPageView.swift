@@ -55,7 +55,8 @@ struct MainPageView: View {
         isEditing = false
     }
 
-    // 필터 정렬
+    // 정렬 기준: 최신/오래된은 시간 기반으로 처리합니다.
+    // Material에 createdAt(Date)와 updatedAt(Date?)가 있다고 가정합니다.
     func sortedMaterials(_ materials:[Material]) -> [Material] {
 
         guard let selectedFilter else { return materials }
@@ -69,10 +70,24 @@ struct MainPageView: View {
             return materials.sorted{ ($0.image?.description ?? "") < ($1.image?.description ?? "") }
 
         case .newest:
-            return materials.sorted{ $0.id.uuidString > $1.id.uuidString }
+            // 기존: UUID 문자열 비교 (생성 시각 보장하지 않음)
+            // return materials.sorted{ $0.id.uuidString > $1.id.uuidString }
+            // 변경: 타임스탬프 기반 (updatedAt 우선, 없으면 createdAt 사용)
+            return materials.sorted {
+                let lhs = $0.updatedAt ?? $0.createdAt
+                let rhs = $1.updatedAt ?? $1.createdAt
+                return lhs > rhs
+            }
 
         case .oldest:
-            return materials.sorted{ $0.id.uuidString < $1.id.uuidString }
+            // 기존: UUID 문자열 비교 (생성 시각 보장하지 않음)
+            // return materials.sorted{ $0.id.uuidString < $1.id.uuidString }
+            // 변경: 타임스탬프 기반 (updatedAt 우선, 없으면 createdAt 사용)
+            return materials.sorted {
+                let lhs = $0.updatedAt ?? $0.createdAt
+                let rhs = $1.updatedAt ?? $1.createdAt
+                return lhs < rhs
+            }
 
         case .quantity:
             return materials.sorted{
@@ -80,9 +95,12 @@ struct MainPageView: View {
             }
 
         case .price:
-            return materials.sorted{
-                Int($0.price) ?? 0 < Int($1.price) ?? 0
-            }
+            // 기존: 총액(price)만 비교
+            // return materials.sorted{
+            //     Int($0.price) ?? 0 < Int($1.price) ?? 0
+            // }
+            // 변경: 단가(가격/수량) 비교 - 계산 프로퍼티 사용
+            return materials.sorted { $0.unitPrice < $1.unitPrice }
         }
     }
 
@@ -98,9 +116,6 @@ struct MainPageView: View {
 
                         ForEach(sortedMaterials(isSearchMode ? searchResult : materialsState)) { item in
 
-                            /* 기존 값 전달
-                            NavigationLink(destination: MaterialDetailView(material: item)) {
-                            */
                             if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
                                 NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
 
