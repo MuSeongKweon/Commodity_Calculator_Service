@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+// enum 추가
+enum SortOrder {
+    case asc
+    case desc
+}
+
 struct MainPageView: View {
 
     let columns = [
@@ -25,6 +31,7 @@ struct MainPageView: View {
     // 필터 상태
     @State private var showFilter = false
     @State private var selectedFilter: FilterType?
+    @State private var sortOrder: SortOrder = .asc //상태 변수 추가
     
     // 🔴 색상 필터 상태
     @State private var selectedColorFilter: MaterialColor? = nil
@@ -57,21 +64,59 @@ struct MainPageView: View {
         selectedItems.removeAll()
         isEditing = false
     }
-
+    
     // 정렬 기준: 최신/오래된은 시간 기반으로 처리합니다.
     // Material에 createdAt(Date)와 updatedAt(Date?)가 있다고 가정합니다.
     func sortedMaterials(_ materials:[Material]) -> [Material] {
 
         guard let selectedFilter else { return materials }
 
-        switch selectedFilter {
-
-        case .alphabetical:
-            return materials.sorted{ $0.name < $1.name }
-
+        switch selectedFilter{
+            
+        case .alphabetical: //수정
+            return materials.sorted {
+                sortOrder == .asc
+                ? $0.name < $1.name
+                : $0.name > $1.name
+            }
+            /*case .alphabetical:
+             return materials.sorted{ $0.name < $1.name }*/
+            
+        case .quantity: //수정
+            return materials.sorted {
+                let lhs = Int($0.quantity) ?? 0
+                let rhs = Int($1.quantity) ?? 0
+                
+                return sortOrder == .asc
+                ? lhs < rhs
+                : lhs > rhs
+            }
+            /*case .quantity:
+             return materials.sorted{
+             Int($0.quantity) ?? 0 < Int($1.quantity) ?? 0
+             }*/
+            
+        case .price: //수정
+            return materials.sorted {
+                let lhs = Int($0.price) ?? 0
+                let rhs = Int($1.price) ?? 0
+                
+                return sortOrder == .asc
+                ? lhs < rhs
+                : lhs > rhs
+            }
+            /*case .price:
+             // 기존: 단가(가격/수량) 비교 - 계산 프로퍼티 사용
+             // return materials.sorted { $0.unitPrice < $1.unitPrice }
+             // 원상복구: 총액(price)만 비교
+             return materials.sorted{
+             Int($0.price) ?? 0 < Int($1.price) ?? 0
+             }
+             }*/
+            
         case .color:
             return materials.sorted{ ($0.image?.description ?? "") < ($1.image?.description ?? "") }
-
+            
         case .newest:
             // 기존: UUID 문자열 비교 (생성 시각 보장하지 않음)
             // return materials.sorted{ $0.id.uuidString > $1.id.uuidString }
@@ -81,7 +126,7 @@ struct MainPageView: View {
                 let rhs = $1.updatedAt ?? $1.createdAt
                 return lhs > rhs
             }
-
+            
         case .oldest:
             // 기존: UUID 문자열 비교 (생성 시각 보장하지 않음)
             // return materials.sorted{ $0.id.uuidString < $1.id.uuidString }
@@ -90,19 +135,6 @@ struct MainPageView: View {
                 let lhs = $0.updatedAt ?? $0.createdAt
                 let rhs = $1.updatedAt ?? $1.createdAt
                 return lhs < rhs
-            }
-
-        case .quantity:
-            return materials.sorted{
-                Int($0.quantity) ?? 0 < Int($1.quantity) ?? 0
-            }
-
-        case .price:
-            // 기존: 단가(가격/수량) 비교 - 계산 프로퍼티 사용
-            // return materials.sorted { $0.unitPrice < $1.unitPrice }
-            // 원상복구: 총액(price)만 비교
-            return materials.sorted{
-                Int($0.price) ?? 0 < Int($1.price) ?? 0
             }
         }
     }
@@ -317,9 +349,8 @@ struct MainPageView: View {
 
             // 필터 시트
             .sheet(isPresented:$showFilter){
-                FilterView(selectedFilter: $selectedFilter)
+                FilterView(selectedFilter: $selectedFilter,sortOrder: $sortOrder)   // 🔴 추가
             }
         }
     }
 }
-
