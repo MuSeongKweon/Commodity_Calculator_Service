@@ -24,13 +24,12 @@ struct Material: Identifiable, Hashable {
     var createdAt: Date
     var updatedAt: Date?
 
-    // 계산 프로퍼티: 단가 (가격/수량)
-    // 수량이 0이거나 파싱 실패 시 분모를 1로 간주하여 방어적으로 계산합니다.
-    var unitPrice: Double {
-        let priceValue = Double(price) ?? 0
-        let qtyValue = Double(quantity) ?? 1
-        return qtyValue > 0 ? priceValue / qtyValue : priceValue
-    }
+    // 단가 기능 제거됨: 기존 계산 프로퍼티 보존용 주석
+    // var unitPrice: Double {
+    //     let priceValue = Double(price) ?? 0
+    //     let qtyValue = Double(quantity) ?? 1
+    //     return qtyValue > 0 ? priceValue / qtyValue : priceValue
+    // }
 
     // 명시적 이니셜라이저 추가 (기본값 포함)
     init(id: UUID = UUID(),
