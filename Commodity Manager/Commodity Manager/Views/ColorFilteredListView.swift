@@ -76,7 +76,7 @@ struct ColorFilteredListView: View {
                 .padding()
             }
             // 🔴 하단 삭제 버튼
-            if isEditing {
+            /*if isEditing {
 
                 VStack {
                     Spacer()
@@ -99,7 +99,7 @@ struct ColorFilteredListView: View {
                             .padding()
                     }
                 }
-            }
+            }*/
         }
         .navigationTitle(color.displayName)
 
