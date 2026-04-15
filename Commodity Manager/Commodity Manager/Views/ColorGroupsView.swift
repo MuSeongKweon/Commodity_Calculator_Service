@@ -22,7 +22,7 @@ struct ColorGroupsView: View {
 
                     ColorFilteredListView(
                         color: color,
-                        materials: $materials // 🔴 추가
+                        materials: $materials
                     )
 
                 } label: {
@@ -39,7 +39,7 @@ struct ColorGroupsView: View {
     }
 }
 
-private struct ColorGroupCell: View {
+struct ColorGroupCell: View {
 
     let color: MaterialColor
     let count: Int

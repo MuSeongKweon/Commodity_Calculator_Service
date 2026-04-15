@@ -33,7 +33,7 @@ struct MainPageView: View {
     @State private var selectedFilter: FilterType?
     @State private var sortOrder: SortOrder = .asc //상태 변수 추가
     
-    // 🔴 색상 필터 상태
+    // 색상 필터 상태
     @State private var selectedColorFilter: MaterialColor? = nil
     
     // Material 데이터
@@ -42,7 +42,11 @@ struct MainPageView: View {
     // 편집 상태
     @State private var isEditing = false
     @State private var selectedItems = Set<UUID>()
-
+    
+    // 🔴 원자재 계산 기능
+    @State private var showCalculator = false
+    @State private var showSidebar = false
+    
     // 검색
     func performSearch(){
         if searchText.isEmpty{
@@ -65,89 +69,12 @@ struct MainPageView: View {
         isEditing = false
     }
     
-    // 정렬 기준: 최신/오래된은 시간 기반으로 처리합니다.
-    // Material에 createdAt(Date)와 updatedAt(Date?)가 있다고 가정합니다.
-    func sortedMaterials(_ materials:[Material]) -> [Material] {
-
-        guard let selectedFilter else { return materials }
-
-        switch selectedFilter{
-            
-        case .alphabetical: //수정
-            return materials.sorted {
-                sortOrder == .asc
-                ? $0.name < $1.name
-                : $0.name > $1.name
-            }
-            /*case .alphabetical:
-             return materials.sorted{ $0.name < $1.name }*/
-            
-        case .quantity: //수정
-            return materials.sorted {
-                let lhs = Int($0.quantity) ?? 0
-                let rhs = Int($1.quantity) ?? 0
-                
-                return sortOrder == .asc
-                ? lhs < rhs
-                : lhs > rhs
-            }
-            /*case .quantity:
-             return materials.sorted{
-             Int($0.quantity) ?? 0 < Int($1.quantity) ?? 0
-             }*/
-            
-        case .price: //수정
-            return materials.sorted {
-                let lhs = Int($0.price) ?? 0
-                let rhs = Int($1.price) ?? 0
-                
-                return sortOrder == .asc
-                ? lhs < rhs
-                : lhs > rhs
-            }
-            /*case .price:
-             // 기존: 단가(가격/수량) 비교 - 계산 프로퍼티 사용
-             // return materials.sorted { $0.unitPrice < $1.unitPrice }
-             // 원상복구: 총액(price)만 비교
-             return materials.sorted{
-             Int($0.price) ?? 0 < Int($1.price) ?? 0
-             }
-             }*/
-            
-        case .color:
-            return materials.sorted{ ($0.image?.description ?? "") < ($1.image?.description ?? "") }
-            
-        case .newest:
-            // 기존: UUID 문자열 비교 (생성 시각 보장하지 않음)
-            // return materials.sorted{ $0.id.uuidString > $1.id.uuidString }
-            // 변경: 타임스탬프 기반 (updatedAt 우선, 없으면 createdAt 사용)
-            return materials.sorted {
-                let lhs = $0.updatedAt ?? $0.createdAt
-                let rhs = $1.updatedAt ?? $1.createdAt
-                return lhs > rhs
-            }
-            
-        case .oldest:
-            // 기존: UUID 문자열 비교 (생성 시각 보장하지 않음)
-            // return materials.sorted{ $0.id.uuidString < $1.id.uuidString }
-            // 변경: 타임스탬프 기반 (updatedAt 우선, 없으면 createdAt 사용)
-            return materials.sorted {
-                let lhs = $0.updatedAt ?? $0.createdAt
-                let rhs = $1.updatedAt ?? $1.createdAt
-                return lhs < rhs
-            }
-        }
-    }
-    // 🔴 카드 표시 리스트
-    var displayedMaterials:[Material] {
-
-        let base = isSearchMode ? searchResult : materialsState
-
-        guard let color = selectedColorFilter else {
-            return base
-        }
-
-        return base.filter { $0.color == color }
+    var filteredMaterials: [Material] {
+        MaterialSortHelper.sortedMaterials(
+            materialsState,
+            selectedFilter: selectedFilter,
+            sortOrder: sortOrder
+        )
     }
 
     // 🔴 색상 그룹 생성
@@ -175,14 +102,21 @@ struct MainPageView: View {
                         // 변경: 색상 그룹(뭉치) 화면 표시
                         ColorGroupsView(
                             groups: groupedMaterials,
-                            selectedColorFilter: $selectedColorFilter, materials: $materialsState
+                            selectedColorFilter: $selectedColorFilter,
+                            materials: $materialsState
                         )
                         .padding()
                         
                     } else {
                         LazyVGrid(columns: columns, spacing: 16){
 
-                            ForEach(sortedMaterials(isSearchMode ? searchResult : materialsState)) { item in
+                            ForEach(
+                                MaterialSortHelper.sortedMaterials(
+                                    isSearchMode ? searchResult : materialsState,
+                                    selectedFilter: selectedFilter,
+                                    sortOrder: sortOrder
+                                )
+                            ) { item in
 
                                 if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
                                     NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
@@ -300,6 +234,36 @@ struct MainPageView: View {
                         }
                     }
                 }
+                
+                // 🔴 사이드바
+                if showSidebar {
+
+                    HStack {
+
+                        VStack(alignment: .leading, spacing: 20) {
+
+                            NavigationLink {
+                                MaterialCalculatorView(materials: $materialsState)
+                            } label: {
+                                Text("원자재 계산")
+                                    .font(.headline)
+                            }
+
+                            Spacer()
+                        }
+                        .padding()
+                        .frame(width: 250)
+                        .background(Color.white)
+
+                        Spacer()
+                    }
+                    .background(Color.black.opacity(0.3))
+                    .onTapGesture {
+                        withAnimation {
+                            showSidebar = false
+                        }
+                    }
+                }
             }
             
             .navigationTitle("원자재")
@@ -307,7 +271,11 @@ struct MainPageView: View {
             .toolbar {
 
                 ToolbarItem(placement:.navigationBarLeading){
-                    Button(action:{}){
+                    Button {
+                        withAnimation {
+                            showSidebar.toggle()
+                        }
+                    } label: {
                         Image(systemName:"slider.horizontal.3")
                     }
                 }
@@ -354,3 +322,4 @@ struct MainPageView: View {
         }
     }
 }
+
