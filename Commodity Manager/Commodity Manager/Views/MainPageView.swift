@@ -92,21 +92,15 @@ struct MainPageView: View {
                 ScrollView{
 
                     if selectedFilter == .color {
-                        // 기존: 색상 필터에서도 개별 카드 그리드 표시 (주석 처리)
-                        // LazyVGrid(columns: columns, spacing: 16){
-                        //     ForEach(sortedMaterials(isSearchMode ? searchResult : materialsState)) { item in
-                        //         ... 기존 카드 셀 ...
-                        //     }
-                        // }
 
-                        // 변경: 색상 그룹(뭉치) 화면 표시
+                        // 색상 그룹(뭉치) 화면 표시
                         ColorGroupsView(
                             groups: groupedMaterials,
                             selectedColorFilter: $selectedColorFilter,
                             materials: $materialsState
                         )
                         .padding()
-                        
+                         
                     } else {
                         LazyVGrid(columns: columns, spacing: 16){
 
@@ -145,6 +139,7 @@ struct MainPageView: View {
                                         }
                                     }
                                     .buttonStyle(.plain)
+                                     
                                 } else {
                                     // Fallback: 바인딩을 찾지 못한 경우 읽기 전용으로 표시
                                     NavigationLink(destination: MaterialDetailView(material: .constant(item))) {
@@ -170,15 +165,16 @@ struct MainPageView: View {
                                         }
                                     }
                                     .buttonStyle(.plain)
+                                     
                                 }
 
                             }
                         }
                         .padding()
                     }
-
+                    
                 }
-
+                
                 // 검색 overlay
                 if isSearching{
 
@@ -213,6 +209,7 @@ struct MainPageView: View {
 
                         Spacer()
                     }
+                     
                 }
 
                 // 삭제 버튼
@@ -233,6 +230,7 @@ struct MainPageView: View {
                                 .padding()
                         }
                     }
+                     
                 }
                 
                 // 🔴 사이드바
@@ -247,12 +245,13 @@ struct MainPageView: View {
                             } label: {
                                 Text("원자재 계산")
                                     .font(.headline)
+                                    .foregroundColor(.black)
                             }
 
                             Spacer()
                         }
                         .padding()
-                        .frame(width: 250)
+                        .frame(width: 150)
                         .background(Color.white)
 
                         Spacer()
@@ -263,13 +262,14 @@ struct MainPageView: View {
                             showSidebar = false
                         }
                     }
+                     
                 }
             }
             
             .navigationTitle("원자재")
             
             .toolbar {
-
+                
                 ToolbarItem(placement:.navigationBarLeading){
                     Button {
                         withAnimation {
@@ -279,7 +279,7 @@ struct MainPageView: View {
                         Image(systemName:"slider.horizontal.3")
                     }
                 }
-
+                
                 ToolbarItemGroup(placement:.navigationBarTrailing){
 
                     Button {
@@ -320,6 +320,7 @@ struct MainPageView: View {
                 FilterView(selectedFilter: $selectedFilter,sortOrder: $sortOrder)   // 🔴 추가
             }
         }
+        
     }
 }
 
