@@ -75,31 +75,6 @@ struct ColorFilteredListView: View {
                 }
                 .padding()
             }
-            // 🔴 하단 삭제 버튼
-            /*if isEditing {
-
-                VStack {
-                    Spacer()
-
-                    Button {
-
-                        materials.removeAll { selectedItems.contains($0.id) }
-                        selectedItems.removeAll()
-                        isEditing = false
-
-                    } label: {
-
-                        Text("삭제")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth:.infinity)
-                            .padding()
-                            .background(Color.red)
-                            .cornerRadius(12)
-                            .padding()
-                    }
-                }
-            }*/
         }
         .navigationTitle(color.displayName)
 
@@ -114,7 +89,6 @@ struct ColorFilteredListView: View {
                     selectedItems.removeAll()
 
                 } label: {
-
                     Image(systemName: "square.and.pencil")
                 }
                 if isEditing {

@@ -17,7 +17,10 @@ struct MaterialCalculatorView: View {
     @State private var selectedFilter: FilterType? //필터 선택 관련
     @State private var sortOrder: SortOrder = .asc //오름차순 내림차순 관련
     @State private var showFilter = false //필터 접근 관련
-    
+
+    @State private var isSearching: Bool = false
+    @State private var searchText: String = ""
+
     func increase(_ item: Material) {
         selected[item.id, default: 0] += 1
     }
@@ -27,13 +30,32 @@ struct MaterialCalculatorView: View {
             selected[item.id, default: 0] -= 1
         }
     }
+
+    // 선택 수량 전체 초기화
+    func resetSelection() {
+        selected.removeAll()
+    }
     
     var filteredMaterials: [Material] {
-        MaterialSortHelper.sortedMaterials(
-            materials,
+        let searched = searchText.isEmpty ? materials : materials.filter { m in
+            m.name.localizedCaseInsensitiveContains(searchText) ||
+            m.store.localizedCaseInsensitiveContains(searchText) ||
+            m.price.localizedCaseInsensitiveContains(searchText) ||
+            m.quantity.localizedCaseInsensitiveContains(searchText)
+        }
+        return MaterialSortHelper.sortedMaterials(
+            searched,
             selectedFilter: selectedFilter,
             sortOrder: sortOrder
         )
+    }
+    
+    // 선택 수량이 있는 항목을 상단으로 정렬 (기존 필터/정렬 결과는 그룹 내에서 유지)
+    var prioritizedMaterials: [Material] {
+        // 안정적인 정렬을 위해, 현재 필터/정렬 결과를 기준으로 그룹화 후 병합
+        let selectedItems = filteredMaterials.filter { (selected[$0.id] ?? 0) > 0 }
+        let unselectedItems = filteredMaterials.filter { (selected[$0.id] ?? 0) == 0 }
+        return selectedItems + unselectedItems
     }
     
     // 색상 그룹 생성 (계산기에서도 색상 그룹 화면을 사용할 때 필요)
@@ -80,7 +102,7 @@ struct MaterialCalculatorView: View {
 
                     LazyVGrid(columns: columns, spacing: 16) {
 
-                        ForEach(filteredMaterials) { item in
+                        ForEach(prioritizedMaterials) { item in
 
                             VStack {
 
@@ -152,6 +174,21 @@ struct MaterialCalculatorView: View {
                     Image(systemName: "line.3.horizontal.decrease.circle")
                 }
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    withAnimation { isSearching = true }
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    resetSelection()
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                }
+                .accessibilityLabel("선택 초기화")
+            }
         }
         .sheet(isPresented: $showFilter) {
             FilterView(
@@ -159,6 +196,32 @@ struct MaterialCalculatorView: View {
                 sortOrder: $sortOrder
             )
         }
+        .overlay(
+            Group {
+                if isSearching {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation { isSearching = false }
+                        }
+                    VStack {
+                        HStack {
+                            TextField("재료 검색", text: $searchText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            Button("취소") {
+                                searchText = ""
+                                withAnimation { isSearching = false }
+                            }
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(12)
+                        .padding()
+                        Spacer()
+                    }
+                }
+            }
+        )
     }
 
     // 🔴 총액 계산 로직
@@ -173,3 +236,4 @@ struct MaterialCalculatorView: View {
         }
     }
 }
+

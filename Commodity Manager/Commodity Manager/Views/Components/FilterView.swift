@@ -11,6 +11,7 @@ struct FilterView: View {
     
     @Binding var selectedFilter: FilterType?
     @Binding var sortOrder: SortOrder //추가
+    var hideColorOption: Bool = false
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -36,7 +37,7 @@ struct FilterView: View {
                 }
                 // 🔴 2️⃣ 기존 필터 리스트
                 Section(header: Text("필터")) {
-                    ForEach(FilterType.allCases) { filter in
+                    ForEach((hideColorOption ? FilterType.allCases.filter { $0 != .color } : FilterType.allCases)) { filter in
                         
                         Button {
                             
@@ -66,3 +67,4 @@ struct FilterView: View {
         }
     }
 }
+
