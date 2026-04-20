@@ -66,118 +66,149 @@ struct CalculatorColorFilteredListView: View {
     }
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(prioritizedItems) { item in
-                    VStack {
-                        MaterialCardView(material: item)
-                        HStack {
-                            Button { decrease(item) } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .disabled((selectedQuantities[item.id] ?? 0) == 0)
+        ScrollViewReader { proxy in
+            ZStack(alignment: .bottomTrailing) {
+                ScrollView {
+                    // Top anchor for scroll-to-top
+                    Color.clear
+                        .frame(height: 0.1)
+                        .id("top")
 
-                            Text("\(selectedQuantities[item.id, default: 0])")
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(prioritizedItems) { item in
+                            VStack {
+                                MaterialCardView(material: item)
+                                HStack {
+                                    Button { decrease(item) } label: {
+                                        Image(systemName: "minus.circle")
+                                    }
+                                    .disabled((selectedQuantities[item.id] ?? 0) == 0)
 
-                            Button { increase(item) } label: {
-                                Image(systemName: "plus.circle")
+                                    Text("\(selectedQuantities[item.id, default: 0])")
+
+                                    Button { increase(item) } label: {
+                                        Image(systemName: "plus.circle")
+                                    }
+                                }
+                                // 🔴 부족 수량 표시
+                                if MaterialSortHelper.isShortage(
+                                    item: item,
+                                    selected: selectedQuantities
+                                ) {
+                                    Text("재고 부족: \(MaterialSortHelper.shortageAmount(item: item, selected: selectedQuantities))개")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
                             }
-                        }
-                        // 🔴 부족 수량 표시
-                        if MaterialSortHelper.isShortage(
-                            item: item,
-                            selected: selectedQuantities
-                        ) {
-                            Text("재고 부족: \(MaterialSortHelper.shortageAmount(item: item, selected: selectedQuantities))개")
-                                .font(.caption)
-                                .foregroundColor(.red)
                         }
                     }
+                    .padding()
+                    .padding(.bottom, 160)
                 }
-            }
-            .padding()
-            .padding(.bottom, 160)
-        }
-        .navigationTitle(color.displayName)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showFilter = true
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    withAnimation { isSearching = true }
-                } label: {
-                    Image(systemName: "magnifyingglass")
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    resetSelection()
-                } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                }
-                .accessibilityLabel("선택 초기화")
-            }
-        }
-        .sheet(isPresented: $showFilter) {
-            FilterView(
-                selectedFilter: $selectedFilter,
-                sortOrder: $sortOrder,
-                hideColorOption: true
-            )
-        }
-        .overlay(
-            Group {
-                if isSearching {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation { isSearching = false }
+                .navigationTitle(color.displayName)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            showFilter = true
+                        } label: {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
                         }
-                    VStack {
-                        HStack {
-                            TextField("재료 검색", text: $searchText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Button("취소") {
-                                searchText = ""
-                                withAnimation { isSearching = false }
-                            }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            withAnimation { isSearching = true }
+                        } label: {
+                            Image(systemName: "magnifyingglass")
                         }
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(12)
-                        .padding()
-                        Spacer()
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            resetSelection()
+                        } label: {
+                            Image(systemName: "arrow.counterclockwise")
+                        }
+                        .accessibilityLabel("선택 초기화")
                     }
                 }
-            }
-        )
-        if isSearching != true {
-            // 하단 합계 + 저장 UI (MaterialCalculatorView와 동일한 형식)
-            VStack(spacing: 12) {
-                Text("총액")
-                    .font(.headline)
-                
-                Text("₩ \(totalPrice)")
-                    .font(.title)
-                    .bold()
-                
-                Button {
-                    // TODO: 엑셀 저장 (추후 구현)
-                } label: {
-                    Text("저장")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                .sheet(isPresented: $showFilter) {
+                    FilterView(
+                        selectedFilter: $selectedFilter,
+                        sortOrder: $sortOrder,
+                        hideColorOption: true
+                    )
                 }
+                .overlay(
+                    Group {
+                        if isSearching {
+                            Color.black.opacity(0.4)
+                                .ignoresSafeArea()
+                                .onTapGesture {
+                                    withAnimation { isSearching = false }
+                                }
+                            VStack {
+                                HStack {
+                                    TextField("재료 검색", text: $searchText)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    Button("취소") {
+                                        searchText = ""
+                                        withAnimation { isSearching = false }
+                                    }
+                                }
+                                .padding()
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(12)
+                                .padding()
+                                Spacer()
+                            }
+                        }
+                    }
+                )
+                
+                if isSearching != true {
+                    // 하단 합계 + 저장 UI (MaterialCalculatorView와 동일한 형식)
+                    VStack(spacing: 12) {
+                        Text("총액")
+                            .font(.headline)
+
+                        Text("₩ \(totalPrice)")
+                            .font(.title)
+                            .bold()
+
+                        Button {
+                            // TODO: 엑셀 저장 (추후 구현)
+                        } label: {
+                            Text("저장")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .background(
+                        Color.white
+                    )
+                    .padding(.bottom, 0)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                
+                // Floating scroll-to-top button
+                ScrollToTopOverlay(
+                    action: {
+                        withAnimation(.easeInOut) {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
+                    },
+                    bottomPadding: isSearching ? 240 : 100,
+                    trailingPadding: 16,
+                    size: 56,
+                    backgroundColor: .white,
+                    iconColor: .gray,
+                    systemImageName: "arrow.up.circle.fill"
+                )
             }
-            .padding()
         }
     }
 }

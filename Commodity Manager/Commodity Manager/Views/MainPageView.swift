@@ -89,90 +89,110 @@ struct MainPageView: View {
 
             ZStack{
 
-                ScrollView{
+                ScrollViewReader { proxy in
+                    ZStack(alignment: .bottomTrailing) {
+                        ScrollView{
+                            Color.clear
+                                .frame(height: 0.1)
+                                .id("top")
 
-                    if selectedFilter == .color {
+                            if selectedFilter == .color {
 
-                        // 색상 그룹(뭉치) 화면 표시
-                        ColorGroupsView(
-                            groups: groupedMaterials,
-                            selectedColorFilter: $selectedColorFilter,
-                            materials: $materialsState
-                        )
-                        .padding()
-                         
-                    } else {
-                        LazyVGrid(columns: columns, spacing: 16){
-
-                            ForEach(
-                                MaterialSortHelper.sortedMaterials(
-                                    isSearchMode ? searchResult : materialsState,
-                                    selectedFilter: selectedFilter,
-                                    sortOrder: sortOrder
+                                // 색상 그룹(뭉치) 화면 표시
+                                ColorGroupsView(
+                                    groups: groupedMaterials,
+                                    selectedColorFilter: $selectedColorFilter,
+                                    materials: $materialsState
                                 )
-                            ) { item in
+                                .padding()
+                                 
+                            } else {
+                                LazyVGrid(columns: columns, spacing: 16){
 
-                                if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
-                                    NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
+                                    ForEach(
+                                        MaterialSortHelper.sortedMaterials(
+                                            isSearchMode ? searchResult : materialsState,
+                                            selectedFilter: selectedFilter,
+                                            sortOrder: sortOrder
+                                        )
+                                    ) { item in
 
-                                        ZStack(alignment:.topTrailing){
+                                        if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
+                                            NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
 
-                                            MaterialCardView(material: item)
+                                                ZStack(alignment:.topTrailing){
 
-                                            if isEditing{
-                                                Button(action:{
-                                                    if selectedItems.contains(item.id){
-                                                        selectedItems.remove(item.id)
-                                                    } else{
-                                                        selectedItems.insert(item.id)
+                                                    MaterialCardView(material: item)
+
+                                                    if isEditing{
+                                                        Button(action:{
+                                                            if selectedItems.contains(item.id){
+                                                                selectedItems.remove(item.id)
+                                                            } else{
+                                                                selectedItems.insert(item.id)
+                                                            }
+                                                        }){
+                                                            Image(systemName:
+                                                                    selectedItems.contains(item.id)
+                                                                    ? "checkmark.circle.fill"
+                                                                    : "circle")
+                                                                .font(.title2)
+                                                                .foregroundColor(.blue)
+                                                                .padding(6)
+                                                        }
                                                     }
-                                                }){
-                                                    Image(systemName:
-                                                            selectedItems.contains(item.id)
-                                                            ? "checkmark.circle.fill"
-                                                            : "circle")
-                                                        .font(.title2)
-                                                        .foregroundColor(.blue)
-                                                        .padding(6)
                                                 }
                                             }
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                     
-                                } else {
-                                    // Fallback: 바인딩을 찾지 못한 경우 읽기 전용으로 표시
-                                    NavigationLink(destination: MaterialDetailView(material: .constant(item))) {
-                                        ZStack(alignment:.topTrailing){
-                                            MaterialCardView(material: item)
-                                            if isEditing{
-                                                Button(action:{
-                                                    if selectedItems.contains(item.id){
-                                                        selectedItems.remove(item.id)
-                                                    } else{
-                                                        selectedItems.insert(item.id)
+                                            .buttonStyle(.plain)
+                                             
+                                        } else {
+                                            // Fallback: 바인딩을 찾지 못한 경우 읽기 전용으로 표시
+                                            NavigationLink(destination: MaterialDetailView(material: .constant(item))) {
+                                                ZStack(alignment:.topTrailing){
+                                                    MaterialCardView(material: item)
+                                                    if isEditing{
+                                                        Button(action:{
+                                                            if selectedItems.contains(item.id){
+                                                                selectedItems.remove(item.id)
+                                                            } else{
+                                                                selectedItems.insert(item.id)
+                                                            }
+                                                        }){
+                                                            Image(systemName:
+                                                                    selectedItems.contains(item.id)
+                                                                    ? "checkmark.circle.fill"
+                                                                    : "circle")
+                                                                .font(.title2)
+                                                                .foregroundColor(.blue)
+                                                                .padding(6)
+                                                        }
                                                     }
-                                                }){
-                                                    Image(systemName:
-                                                            selectedItems.contains(item.id)
-                                                            ? "checkmark.circle.fill"
-                                                            : "circle")
-                                                        .font(.title2)
-                                                        .foregroundColor(.blue)
-                                                        .padding(6)
                                                 }
                                             }
+                                            .buttonStyle(.plain)
+                                             
                                         }
+
                                     }
-                                    .buttonStyle(.plain)
-                                     
                                 }
-
+                                .padding()
                             }
                         }
-                        .padding()
+
+                        ScrollToTopOverlay(
+                            action: {
+                                withAnimation(.easeInOut) {
+                                    proxy.scrollTo("top", anchor: .top)
+                                }
+                            },
+                            bottomPadding: 16,
+                            trailingPadding: 16,
+                            size: 56,
+                            backgroundColor: .white,
+                            iconColor: .gray,
+                            systemImageName: "arrow.up.circle.fill"
+                        )
                     }
-                    
                 }
                 
                 // 검색 overlay
