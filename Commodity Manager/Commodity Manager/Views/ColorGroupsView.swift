@@ -11,31 +11,55 @@ struct ColorGroupsView: View {
 
         let sortedKeys = groups.keys.sorted { $0.rawValue < $1.rawValue }
 
-        LazyVGrid(
-            columns: [GridItem(.flexible()), GridItem(.flexible())],
-            spacing: 16
-        ) {
+        ScrollViewReader { proxy in
+            ZStack(alignment: .bottomTrailing) {
+                ScrollView {
+                    Color.clear
+                        .frame(height: 0.1)
+                        .id("top")
 
-            ForEach(sortedKeys, id: \._rawValue) { color in
+                    LazyVGrid(
+                        columns: [GridItem(.flexible()), GridItem(.flexible())],
+                        spacing: 16
+                    ) {
 
-                NavigationLink {
+                        ForEach(sortedKeys, id: \._rawValue) { color in
 
-                    ColorFilteredListView(
-                        color: color,
-                        materials: $materials
-                    )
+                            NavigationLink {
 
-                } label: {
+                                ColorFilteredListView(
+                                    color: color,
+                                    materials: $materials
+                                )
 
-                    ColorGroupCell(
-                        color: color,
-                        count: groups[color]?.count ?? 0
-                    )
+                            } label: {
+
+                                ColorGroupCell(
+                                    color: color,
+                                    count: groups[color]?.count ?? 0
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .buttonStyle(.plain)
+
+                /*ScrollToTopOverlay(
+                    action: {
+                        withAnimation(.easeInOut) {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
+                    },
+                    bottomPadding: 16,
+                    trailingPadding: 16,
+                    size: 56,
+                    backgroundColor: .white,
+                    iconColor: .gray,
+                    systemImageName: "arrow.up.circle.fill"
+                )*/
             }
         }
-        .padding(.horizontal)
     }
 }
 
@@ -77,6 +101,7 @@ struct ColorGroupCell: View {
             }
             .padding(8)
         }
+        .frame(height: 130)
     }
 }
 
@@ -97,3 +122,4 @@ extension MaterialColor {
         }
     }
 }
+

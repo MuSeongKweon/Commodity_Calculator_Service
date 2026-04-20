@@ -81,87 +81,107 @@ struct MaterialCalculatorView: View {
     
     
     var body: some View {
+        ScrollViewReader { proxy in
+            VStack {
 
-        VStack {
+                let columns = [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ]
 
-            let columns = [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ]
+                if selectedFilter == .color {
+                    // 색상 필터 선택 시: 색상 그룹 화면으로 전환
+                    CalculatorColorGroupsView(
+                        groups: groupedMaterials,
+                        materials: $materials,
+                        selectedQuantities: $selected
+                    )
+                    .padding()
+                } else {
+                    ZStack(alignment: .bottomTrailing) {
+                        ScrollView {
+                            Color.clear
+                                .frame(height: 0.1)
+                                .id("top")
 
-            if selectedFilter == .color {
-                // 색상 필터 선택 시: 색상 그룹 화면으로 전환
-                CalculatorColorGroupsView(
-                    groups: groupedMaterials,
-                    materials: $materials,
-                    selectedQuantities: $selected
-                )
-                .padding()
-            } else {
-                ScrollView {
+                            LazyVGrid(columns: columns, spacing: 16) {
 
-                    LazyVGrid(columns: columns, spacing: 16) {
+                                ForEach(prioritizedMaterials) { item in
 
-                        ForEach(prioritizedMaterials) { item in
+                                    VStack {
 
-                            VStack {
+                                        MaterialCardView(material: item)
 
-                                MaterialCardView(material: item)
+                                        HStack {
 
-                                HStack {
+                                            Button { decrease(item) } label: {
+                                                Image(systemName: "minus.circle")
+                                            }
+                                            .disabled((selected[item.id] ?? 0) == 0)
 
-                                    Button { decrease(item) } label: {
-                                        Image(systemName: "minus.circle")
+                                            Text("\(selected[item.id, default: 0])")
+
+                                            Button { increase(item) } label: {
+                                                Image(systemName: "plus.circle")
+                                            }
+                                        }
+                                        // 🔴 부족 수량 표시
+                                        if isShortage(item) {
+
+                                            Text("재고 부족: \(shortageAmount(item))개 부족")
+                                                .font(.caption)
+                                                .foregroundColor(.red)
+                                        }
                                     }
-                                    .disabled((selected[item.id] ?? 0) == 0)
-
-                                    Text("\(selected[item.id, default: 0])")
-
-                                    Button { increase(item) } label: {
-                                        Image(systemName: "plus.circle")
-                                    }
-                                }
-                                // 🔴 부족 수량 표시
-                                if isShortage(item) {
-
-                                    Text("재고 부족: \(shortageAmount(item))개 부족")
-                                        .font(.caption)
-                                        .foregroundColor(.red)
                                 }
                             }
+                            .padding()
+                        }
+
+                        ScrollToTopOverlay(
+                            action: {
+                                withAnimation(.easeInOut) {
+                                    // Without ScrollViewReader here, we cannot call proxy. Keep placeholder for future integration.
+                                }
+                            },
+                            bottomPadding: 16,
+                            trailingPadding: 16,
+                            size: 56,
+                            backgroundColor: .white,
+                            iconColor: .gray,
+                            systemImageName: "arrow.up.circle.fill"
+                        )
+                    }
+                }
+
+                // 🔴 총액 표시
+                if selectedFilter != .color {
+                    VStack(spacing: 12) {
+                        
+                        Text("총액")
+                            .font(.headline)
+                        
+                        Text("₩ \(totalPrice)")
+                            .font(.title)
+                            .bold()
+                        
+                        // 🔴 저장 버튼 (현재는 동작 X)
+                        Button {
+                            
+                            // TODO: 엑셀 저장 (추후 구현)
+                            
+                        } label: {
+                            
+                            Text("저장")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
                         }
                     }
                     .padding()
                 }
-            }
-
-            // 🔴 총액 표시
-            if selectedFilter != .color {
-                VStack(spacing: 12) {
-                    
-                    Text("총액")
-                        .font(.headline)
-                    
-                    Text("₩ \(totalPrice)")
-                        .font(.title)
-                        .bold()
-                    
-                    // 🔴 저장 버튼 (현재는 동작 X)
-                    Button {
-                        
-                        // TODO: 엑셀 저장 (추후 구현)
-                        
-                    } label: {
-                        
-                        Text("저장")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                    }
-                }
-                .padding()
             }
         }
         .navigationTitle("원자재 계산")

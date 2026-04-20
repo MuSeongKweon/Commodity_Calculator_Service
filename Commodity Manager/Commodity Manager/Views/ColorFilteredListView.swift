@@ -24,56 +24,74 @@ struct ColorFilteredListView: View {
     ]
 
     var body: some View {
+        ScrollViewReader { proxy in
+            ZStack(alignment: .bottomTrailing) {
 
-        ZStack {
-
-            ScrollView {
-                
-                LazyVGrid(columns: columns, spacing: 16) {
+                ScrollView {
+                    Color.clear
+                        .frame(height: 0.1)
+                        .id("top")
                     
-                    ForEach(materials.filter { $0.color == color }) { item in
+                    LazyVGrid(columns: columns, spacing: 16) {
                         
-                        if let index = materials.firstIndex(where: { $0.id == item.id }) {
+                        ForEach(materials.filter { $0.color == color }) { item in
                             
-                            NavigationLink {
+                            if let index = materials.firstIndex(where: { $0.id == item.id }) {
                                 
-                                MaterialDetailView(material: $materials[index])
-                                
-                            } label: {
-                                
-                                ZStack(alignment: .topTrailing) {
+                                NavigationLink {
                                     
-                                    MaterialCardView(material: item)
+                                    MaterialDetailView(material: $materials[index])
                                     
-                                    // 🔴 선택 체크 UI
-                                    if isEditing {
+                                } label: {
+                                    
+                                    ZStack(alignment: .topTrailing) {
                                         
-                                        Button {
+                                        MaterialCardView(material: item)
+                                        
+                                        // 🔴 선택 체크 UI
+                                        if isEditing {
                                             
-                                            if selectedItems.contains(item.id) {
-                                                selectedItems.remove(item.id)
-                                            } else {
-                                                selectedItems.insert(item.id)
+                                            Button {
+                                                
+                                                if selectedItems.contains(item.id) {
+                                                    selectedItems.remove(item.id)
+                                                } else {
+                                                    selectedItems.insert(item.id)
+                                                }
+                                                
+                                            } label: {
+                                                
+                                                Image(systemName:
+                                                        selectedItems.contains(item.id)
+                                                      ? "checkmark.circle.fill"
+                                                      : "circle")
+                                                .font(.title2)
+                                                .foregroundColor(.blue)
+                                                .padding(6)
                                             }
-                                            
-                                        } label: {
-                                            
-                                            Image(systemName:
-                                                    selectedItems.contains(item.id)
-                                                  ? "checkmark.circle.fill"
-                                                  : "circle")
-                                            .font(.title2)
-                                            .foregroundColor(.blue)
-                                            .padding(6)
                                         }
                                     }
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
+                    .padding()
                 }
-                .padding()
+
+                ScrollToTopOverlay(
+                    action: {
+                        withAnimation(.easeInOut) {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
+                    },
+                    bottomPadding: 16,
+                    trailingPadding: 16,
+                    size: 56,
+                    backgroundColor: .white,
+                    iconColor: .gray,
+                    systemImageName: "arrow.up.circle.fill"
+                )
             }
         }
         .navigationTitle(color.displayName)
