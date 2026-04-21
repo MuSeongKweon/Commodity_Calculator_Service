@@ -11,8 +11,7 @@ enum FilterType: String, CaseIterable, Identifiable {
 
     case alphabetical = "가나다"
     case color = "색상"
-    case newest = "최신"
-    case oldest = "오래된"
+    case time = "시간순"
     case quantity = "재고"
     case price = "단가"
 

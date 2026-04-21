@@ -161,7 +161,7 @@ struct MaterialCalculatorView: View {
                         Text("총액")
                             .font(.headline)
                         
-                        Text("₩ \(totalPrice)")
+                        Text("₩ \(formattedTotalPrice)")
                             .font(.title)
                             .bold()
                         
@@ -244,15 +244,22 @@ struct MaterialCalculatorView: View {
         )
     }
 
-    // 🔴 총액 계산 로직
-    var totalPrice: Int {
-
-        materials.reduce(0) { result, item in
-
-            let quantity = selected[item.id, default: 0]
-            let price = Int(item.price) ?? 0
-
+    // 🔴 총액 계산 로직 (소수 단가 지원)
+    var totalPrice: Double {
+        materials.reduce(0.0) { result, item in
+            let quantity = Double(selected[item.id, default: 0])
+            let price = Double(item.price) ?? 0.0
             return result + (price * quantity)
+        }
+    }
+
+    // 🔴 총액 표시 포맷 (소수점 최대 2자리, 불필요한 0 제거)
+    private var formattedTotalPrice: String {
+        let value = totalPrice
+        if value.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", value)
+        } else {
+            return String(format: "%.2f", value)
         }
     }
 }
