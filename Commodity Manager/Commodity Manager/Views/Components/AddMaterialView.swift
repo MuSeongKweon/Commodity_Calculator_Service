@@ -19,6 +19,16 @@ struct AddMaterialView: View {
     @State private var price = ""
     @State private var quantity = ""
 
+    @State private var isPriceValid: Bool = true
+    @State private var isQuantityValid: Bool = true
+
+    private var isFormValid: Bool {
+        // price allows decimal numbers, quantity allows integers
+        let priceIsNumber = Double(price) != nil
+        let quantityIsInt = Int(quantity) != nil
+        return !materialName.isEmpty && priceIsNumber && quantityIsInt
+    }
+
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: Image?
     @State private var selectedUIImage: UIImage?
@@ -99,53 +109,68 @@ struct AddMaterialView: View {
                     TextField("구매처", text:$storeName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                    // 가격
+                    // 가격 (단가)
                     TextField("가격", text:$price)
+                        .keyboardType(.decimalPad)
+                        .onChange(of: price) { oldValue, newValue in
+                            isPriceValid = Double(newValue) != nil
+                        }
                         .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                    // 수량
+                    if !isPriceValid {
+                        Text("숫자만 입력해주세요 (예: 1200 또는 1200.5)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+
+                    // 수량 (재고)
                     TextField("수량", text:$quantity)
+                        .keyboardType(.numberPad)
+                        .onChange(of: quantity) { oldValue, newValue in
+                            isQuantityValid = Int(newValue) != nil
+                        }
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                    if !isQuantityValid {
+                        Text("숫자만 입력해주세요 (정수)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
 
                     // 생성 버튼
                     Button(action:{
 
-                     if !materialName.isEmpty {
-                         // 기존: 타임스탬프 미설정 (이니셜라이저 기본값 의존)
-                         // let newMaterial = Material(
-                         //     name: materialName,
-                         //     store: storeName,
-                         //     price: price,
-                         //     quantity: quantity,
-                         //     image: selectedUIImage,
-                         //     color: selectedColor
-                         // )
+                        // 최종 유효성 검사: 숫자 이외 입력 시 생성 불가
+                        isPriceValid = Double(price) != nil
+                        isQuantityValid = Int(quantity) != nil
+                        guard isFormValid else { return }
 
-                         // 변경: 타임스탬프 명시 설정
-                         let now = Date()
-                         let newMaterial = Material(
-                             name: materialName,
-                             store: storeName,
-                             price: price,
-                             quantity: quantity,
-                             image: selectedUIImage,
-                             color: selectedColor,
-                             createdAt: now,
-                             updatedAt: now
-                         )
-                         materials.append(newMaterial)
-                         dismiss()
-                     }
+                        if !materialName.isEmpty {
+                            let now = Date()
+                            let newMaterial = Material(
+                                name: materialName,
+                                store: storeName,
+                                price: price,
+                                quantity: quantity,
+                                image: selectedUIImage,
+                                color: selectedColor,
+                                createdAt: now,
+                                updatedAt: now
+                            )
+                            materials.append(newMaterial)
+                            dismiss()
+                        }
 
                     }){
-                     Text("생성")
-                         .font(.headline)
-                         .foregroundColor(.white)
-                         .frame(maxWidth:.infinity)
-                         .padding()
-                         .background(Color.blue)
-                         .cornerRadius(12)
+                        Text("생성")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth:.infinity)
+                            .padding()
+                            .background(isFormValid ? Color.blue : Color.gray)
+                            .cornerRadius(12)
                     }
+                    .disabled(!isFormValid)
 
                 }
                 .padding()
