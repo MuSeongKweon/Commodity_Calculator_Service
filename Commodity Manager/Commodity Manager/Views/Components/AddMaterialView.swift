@@ -23,10 +23,20 @@ struct AddMaterialView: View {
     @State private var isQuantityValid: Bool = true
 
     private var isFormValid: Bool {
-        // price allows decimal numbers, quantity allows integers
+        // price allows decimal numbers; allow 0 and 0.x, but disallow other leading zeros like 01 or 00.5
         let priceIsNumber = Double(price) != nil
+        let priceHasValidLeading: Bool = {
+            if price == "0" { return true }
+            if price.hasPrefix("0.") { return true }
+            return !price.hasPrefix("0")
+        }()
+        // quantity allows integers; allow 0, but disallow other leading zeros like 01
         let quantityIsInt = Int(quantity) != nil
-        return !materialName.isEmpty && priceIsNumber && quantityIsInt
+        let quantityHasValidLeading: Bool = {
+            if quantity == "0" { return true }
+            return !quantity.hasPrefix("0")
+        }()
+        return !materialName.isEmpty && priceIsNumber && priceHasValidLeading && quantityIsInt && quantityHasValidLeading
     }
 
     @State private var selectedItem: PhotosPickerItem?
@@ -113,12 +123,18 @@ struct AddMaterialView: View {
                     TextField("가격", text:$price)
                         .keyboardType(.decimalPad)
                         .onChange(of: price) { oldValue, newValue in
-                            isPriceValid = Double(newValue) != nil
+                            let numeric = Double(newValue) != nil
+                            let leadingOK: Bool = {
+                                if newValue == "0" { return true }
+                                if newValue.hasPrefix("0.") { return true }
+                                return !newValue.hasPrefix("0")
+                            }()
+                            isPriceValid = numeric && leadingOK
                         }
                         .textFieldStyle(RoundedBorderTextFieldStyle())
 
                     if !isPriceValid {
-                        Text("숫자만 입력해주세요 (예: 1200 또는 1200.5)")
+                        Text("숫자만 입력하고 선행 0은 금지됩니다 (0, 0.5 허용 / 01, 00.5 불가)")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
@@ -127,12 +143,17 @@ struct AddMaterialView: View {
                     TextField("수량", text:$quantity)
                         .keyboardType(.numberPad)
                         .onChange(of: quantity) { oldValue, newValue in
-                            isQuantityValid = Int(newValue) != nil
+                            let numeric = Int(newValue) != nil
+                            let leadingOK: Bool = {
+                                if newValue == "0" { return true }
+                                return !newValue.hasPrefix("0")
+                            }()
+                            isQuantityValid = numeric && leadingOK
                         }
                         .textFieldStyle(RoundedBorderTextFieldStyle())
 
                     if !isQuantityValid {
-                        Text("숫자만 입력해주세요 (정수)")
+                        Text("정수만 입력하고 선행 0은 금지됩니다 (0, 1, 10 허용 / 01 불가)")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
@@ -141,8 +162,19 @@ struct AddMaterialView: View {
                     Button(action:{
 
                         // 최종 유효성 검사: 숫자 이외 입력 시 생성 불가
-                        isPriceValid = Double(price) != nil
-                        isQuantityValid = Int(quantity) != nil
+                        let priceNumeric = Double(price) != nil
+                        let priceLeadingOK: Bool = {
+                            if price == "0" { return true }
+                            if price.hasPrefix("0.") { return true }
+                            return !price.hasPrefix("0")
+                        }()
+                        isPriceValid = priceNumeric && priceLeadingOK
+                        let qtyNumeric = Int(quantity) != nil
+                        let qtyLeadingOK: Bool = {
+                            if quantity == "0" { return true }
+                            return !quantity.hasPrefix("0")
+                        }()
+                        isQuantityValid = qtyNumeric && qtyLeadingOK
                         guard isFormValid else { return }
 
                         if !materialName.isEmpty {

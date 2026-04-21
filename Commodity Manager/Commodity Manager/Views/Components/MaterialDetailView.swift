@@ -26,6 +26,26 @@ struct MaterialDetailView: View {
     
     //❗️색상 편집 추가
     @State private var editedColor: MaterialColor = .gray
+
+    @State private var isEditedPriceValid: Bool = true
+    @State private var isEditedQuantityValid: Bool = true
+
+    private var isEditFormValid: Bool {
+        let priceIsNumber = Double(editedPrice) != nil
+        // allow "0" and "0.xxx", but disallow other leading zeros like "01", "00.5"
+        let priceHasValidLeading: Bool = {
+            if editedPrice == "0" { return true }
+            if editedPrice.hasPrefix("0.") { return true }
+            return !editedPrice.hasPrefix("0")
+        }()
+        let quantityIsInt = Int(editedQuantity) != nil
+        // allow "0", but disallow other leading zeros like "01"
+        let quantityHasValidLeading: Bool = {
+            if editedQuantity == "0" { return true }
+            return !editedQuantity.hasPrefix("0")
+        }()
+        return priceIsNumber && priceHasValidLeading && quantityIsInt && quantityHasValidLeading
+    }
     
 
     var body: some View {
@@ -124,15 +144,42 @@ struct MaterialDetailView: View {
                             Text("가격")
                             Spacer()
                             TextField("가격", text: $editedPrice)
-                                .keyboardType(.numberPad)
+                                .keyboardType(.decimalPad)
+                                .onChange(of: editedPrice) { oldValue, newValue in
+                                    let numeric = Double(newValue) != nil
+                                    let leadingOK: Bool = {
+                                        if newValue == "0" { return true }
+                                        if newValue.hasPrefix("0.") { return true }
+                                        return !newValue.hasPrefix("0")
+                                    }()
+                                    isEditedPriceValid = numeric && leadingOK
+                                }
                                 .multilineTextAlignment(.trailing)
+                        }
+                        if isEditing && !isEditedPriceValid {
+                            Text("숫자만 입력하고 선행 0은 금지됩니다 (0, 0.5 허용 / 01, 00.5 불가)")
+                                .font(.caption)
+                                .foregroundColor(.red)
                         }
                         HStack {
                             Text("수량")
                             Spacer()
                             TextField("수량", text: $editedQuantity)
                                 .keyboardType(.numberPad)
+                                .onChange(of: editedQuantity) { oldValue, newValue in
+                                    let numeric = Int(newValue) != nil
+                                    let leadingOK: Bool = {
+                                        if newValue == "0" { return true }
+                                        return !newValue.hasPrefix("0")
+                                    }()
+                                    isEditedQuantityValid = numeric && leadingOK
+                                }
                                 .multilineTextAlignment(.trailing)
+                        }
+                        if isEditing && !isEditedQuantityValid {
+                            Text("정수만 입력하고 선행 0은 금지됩니다 (0, 1, 10 허용 / 01 불가)")
+                                .font(.caption)
+                                .foregroundColor(.red)
                         }
                     }
                     .font(.title3)
@@ -173,6 +220,21 @@ struct MaterialDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(isEditing ? "완료" : "수정") {
                     if isEditing {
+                        // 최종 유효성 검사
+                        let priceNumeric = Double(editedPrice) != nil
+                        let priceLeadingOK: Bool = {
+                            if editedPrice == "0" { return true }
+                            if editedPrice.hasPrefix("0.") { return true }
+                            return !editedPrice.hasPrefix("0")
+                        }()
+                        isEditedPriceValid = priceNumeric && priceLeadingOK
+                        let qtyNumeric = Int(editedQuantity) != nil
+                        let qtyLeadingOK: Bool = {
+                            if editedQuantity == "0" { return true }
+                            return !editedQuantity.hasPrefix("0")
+                        }()
+                        isEditedQuantityValid = qtyNumeric && qtyLeadingOK
+                        guard isEditFormValid else { return }
                         // 저장: 바인딩된 material에 반영
                         material.name = editedName
                         material.store = editedStore
@@ -184,6 +246,7 @@ struct MaterialDetailView: View {
                         // 변경: 수정 시간 갱신
                         // 기존: 수정 시간 미갱신
                         material.updatedAt = Date()
+                        isEditing.toggle()
                     } else {
                         // 편집 시작 시 현재 값 로드
                         editedName = material.name
@@ -193,28 +256,26 @@ struct MaterialDetailView: View {
                         editedImage = material.image
                         //❗️색상 로드
                         editedColor = material.color
+                        // 초기 유효성 상태 동기화
+                        let priceNumeric = Double(editedPrice) != nil
+                        let priceLeadingOK: Bool = {
+                            if editedPrice == "0" { return true }
+                            if editedPrice.hasPrefix("0.") { return true }
+                            return !editedPrice.hasPrefix("0")
+                        }()
+                        isEditedPriceValid = priceNumeric && priceLeadingOK
+                        let qtyNumeric = Int(editedQuantity) != nil
+                        let qtyLeadingOK: Bool = {
+                            if editedQuantity == "0" { return true }
+                            return !editedQuantity.hasPrefix("0")
+                        }()
+                        isEditedQuantityValid = qtyNumeric && qtyLeadingOK
+                        isEditing.toggle()
                     }
-                    isEditing.toggle()
                 }
+                .disabled(isEditing && !isEditFormValid)
             }
         }
-        // 기존: 더미 이미지 시트 (주석 처리)
-        // .sheet(isPresented: $showImagePicker) {
-        //     VStack(spacing: 16) {
-        //         Text("이미지 선택은 추후 구현")
-        //         Button("더미 이미지 적용") {
-        //             let renderer = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 200))
-        //             let img = renderer.image { ctx in
-        //                 UIColor.systemTeal.setFill()
-        //                 ctx.fill(CGRect(x: 0, y: 0, width: 200, height: 200))
-        //             }
-        //             editedImage = img
-        //             showImagePicker = false
-        //         }
-        //         Button("닫기") { showImagePicker = false }
-        //     }
-        //     .padding()
-        // }
         // 새 구현: PhotosPicker 선택 변경 시 이미지 로드
         .onChange(of: selectedItem) { oldValue, newValue in
             guard let newValue else { return }
@@ -231,6 +292,19 @@ struct MaterialDetailView: View {
             editedPrice = material.price
             editedQuantity = material.quantity
             editedImage = material.image
+            let priceNumeric = Double(editedPrice) != nil
+            let priceLeadingOK: Bool = {
+                if editedPrice == "0" { return true }
+                if editedPrice.hasPrefix("0.") { return true }
+                return !editedPrice.hasPrefix("0")
+            }()
+            isEditedPriceValid = priceNumeric && priceLeadingOK
+            let qtyNumeric = Int(editedQuantity) != nil
+            let qtyLeadingOK: Bool = {
+                if editedQuantity == "0" { return true }
+                return !editedQuantity.hasPrefix("0")
+            }()
+            isEditedQuantityValid = qtyNumeric && qtyLeadingOK
         }
     }
 }

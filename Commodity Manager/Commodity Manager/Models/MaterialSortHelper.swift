@@ -51,18 +51,11 @@ struct MaterialSortHelper {
                 ($0.image?.description ?? "") < ($1.image?.description ?? "")
             }
 
-        case .newest:
+        case .time:
             return materials.sorted {
                 let lhs = $0.updatedAt ?? $0.createdAt
                 let rhs = $1.updatedAt ?? $1.createdAt
-                return lhs > rhs
-            }
-
-        case .oldest:
-            return materials.sorted {
-                let lhs = $0.updatedAt ?? $0.createdAt
-                let rhs = $1.updatedAt ?? $1.createdAt
-                return lhs < rhs
+                return sortOrder == .asc ? (lhs < rhs) : (lhs > rhs)
             }
         }
     }
@@ -87,3 +80,4 @@ struct MaterialSortHelper {
         return max(0, selectedQty - stock)
     }
 }
+
