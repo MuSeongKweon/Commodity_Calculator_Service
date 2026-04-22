@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
+import Foundation
 
-struct Material: Identifiable, Hashable {
+struct Material: Identifiable, Codable, Equatable, Hashable { //260422 수정
 
     // 기존: 생성 시각 정보 없음
     // let id = UUID()
@@ -18,7 +19,7 @@ struct Material: Identifiable, Hashable {
     var price: String
     var quantity: String
     var image: UIImage?
-    var color: MaterialColor = .gray
+    var color: MaterialColor //260422 수정
 
     // 추가: 타임스탬프
     var createdAt: Date
@@ -38,7 +39,7 @@ struct Material: Identifiable, Hashable {
          price: String,
          quantity: String,
          image: UIImage? = nil,
-         color: MaterialColor = .gray,
+         color: MaterialColor, //260422 수정
          createdAt: Date = Date(),
          updatedAt: Date? = Date()) {
         self.id = id
@@ -52,4 +53,30 @@ struct Material: Identifiable, Hashable {
         self.updatedAt = updatedAt
     }
 }
+//260422 수정
+extension Material {
 
+    enum CodingKeys: String, CodingKey {
+
+        case id
+
+        case name
+
+        case store
+
+        case price
+
+        case quantity
+
+        case color
+
+        case createdAt
+
+        case updatedAt
+
+        // ❌ image 제외
+
+    }
+
+}
+//260422 수정

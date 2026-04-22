@@ -25,7 +25,7 @@ struct MaterialDetailView: View {
     @State private var selectedItem: PhotosPickerItem?
     
     //❗️색상 편집 추가
-    @State private var editedColor: MaterialColor = .gray
+    @State private var editedColor: MaterialColor = MaterialColor(name: "Custom", red: 0.5, green: 0.5, blue: 0.5, opacity: 1.0)
 
     @State private var isEditedPriceValid: Bool = true
     @State private var isEditedQuantityValid: Bool = true
@@ -96,31 +96,22 @@ struct MaterialDetailView: View {
                 if isEditing {
 
                     VStack(alignment: .leading, spacing: 8) {
-
                         Text("카드 색상")
                             .font(.headline)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-
-                            HStack {
-
-                                ForEach(MaterialColor.allCases, id: \.self) { color in
-
-                                    Circle()
-                                        .fill(color.color)
-                                        .frame(width: 40, height: 40)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(
-                                                    editedColor == color ? Color.black : Color.clear,
-                                                    lineWidth: 3
-                                                )
-                                        )
-                                        .onTapGesture {
-                                            editedColor = color
-                                        }
+                        // 현재 색상 미리보기와 ColorPicker
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(editedColor.color)
+                                .frame(width: 40, height: 40)
+                                .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
+                            ColorPicker("색상 선택", selection: Binding(
+                                get: { editedColor.color },
+                                set: { newColor in
+                                    let mc = MaterialColor.from(color: newColor, name: editedColor.name)
+                                    editedColor = mc
                                 }
-                            }
+                            ), supportsOpacity: true)
                         }
                     }
                     .padding(.horizontal)

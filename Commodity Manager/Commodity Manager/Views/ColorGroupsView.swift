@@ -9,7 +9,7 @@ struct ColorGroupsView: View {
 
     var body: some View {
 
-        let sortedKeys = groups.keys.sorted { $0.rawValue < $1.rawValue }
+        let sortedKeys = groups.keys.sorted { $0.name < $1.name }
 
         ScrollViewReader { proxy in
             ZStack(alignment: .bottomTrailing) {
@@ -23,7 +23,7 @@ struct ColorGroupsView: View {
                         spacing: 16
                     ) {
 
-                        ForEach(sortedKeys, id: \._rawValue) { color in
+                        ForEach(sortedKeys, id: \.id) { color in
 
                             NavigationLink {
 
@@ -107,19 +107,11 @@ struct ColorGroupCell: View {
 
 extension MaterialColor {
 
-    var _rawValue: String {
-        String(describing: self)
+    var displayName: String {
+
+        name
+
     }
 
-    var displayName: String {
-        switch self {
-            case .gray: return "회색"
-            case .red: return "빨강"
-            case .orange: return "주황"
-            case .yellow: return "노랑"
-            case .green: return "초록"
-            case .blue: return "파랑"
-        }
-    }
 }
 
