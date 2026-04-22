@@ -112,7 +112,7 @@ struct MaterialColor: Identifiable, Codable, Equatable, Hashable {
 }
 
 extension MaterialColor {
-
+    
     static func from(color: Color, name: String = "Custom") -> MaterialColor {
 
         #if os(iOS)
