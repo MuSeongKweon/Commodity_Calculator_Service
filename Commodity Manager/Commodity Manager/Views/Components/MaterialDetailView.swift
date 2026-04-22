@@ -92,29 +92,8 @@ struct MaterialDetailView: View {
                     }
                 }
                 
-                //❗️색상 편집 추가
                 if isEditing {
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("카드 색상")
-                            .font(.headline)
-
-                        // 현재 색상 미리보기와 ColorPicker
-                        HStack(spacing: 12) {
-                            Circle()
-                                .fill(editedColor.color)
-                                .frame(width: 40, height: 40)
-                                .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
-                            ColorPicker("색상 선택", selection: Binding(
-                                get: { editedColor.color },
-                                set: { newColor in
-                                    let mc = MaterialColor.from(color: newColor, name: editedColor.name)
-                                    editedColor = mc
-                                }
-                            ), supportsOpacity: true)
-                        }
-                    }
-                    .padding(.horizontal)
+                    ColorPickerSectionView(selectedColor: $editedColor)
                 }
 
                 if isEditing {
