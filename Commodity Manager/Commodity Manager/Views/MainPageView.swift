@@ -119,7 +119,13 @@ struct MainPageView: View {
                                     ) { item in
 
                                         if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
-                                            NavigationLink(destination: MaterialDetailView(material: $materialsState[index])) {
+                                            NavigationLink(destination: MaterialDetailView(
+                                                
+                                                material: $materialsState[index],
+                                                
+                                                materials: $materialsState
+                                                
+                                            )) {
 
                                                 ZStack(alignment:.topTrailing){
 
@@ -148,7 +154,13 @@ struct MainPageView: View {
                                              
                                         } else {
                                             // Fallback: 바인딩을 찾지 못한 경우 읽기 전용으로 표시
-                                            NavigationLink(destination: MaterialDetailView(material: .constant(item))) {
+                                            NavigationLink(destination: MaterialDetailView(
+                                                
+                                                material: .constant(item),
+                                                
+                                                materials: $materialsState
+                                                
+                                            )) {
                                                 ZStack(alignment:.topTrailing){
                                                     MaterialCardView(material: item)
                                                     if isEditing{

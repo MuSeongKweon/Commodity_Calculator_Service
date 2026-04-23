@@ -1,5 +1,5 @@
 //
-//  Untitled.swift
+//  ColorPickerSectionView.swift
 //  Commodity Manager
 //
 //  Created by MuSeong Kweon on 4/23/26.
@@ -9,6 +9,8 @@ import SwiftUI
 struct ColorPickerSectionView: View {
 
     @Binding var selectedColor: MaterialColor
+    
+    @Binding var materials: [Material] //색상 편집 시 기존 카드 색상 변경 작업 - 새로 추가
 
     @State private var userColorItems: [UserColorItem] = []
 
@@ -38,7 +40,7 @@ struct ColorPickerSectionView: View {
                 Button {
                     // 현재 선택 미리보기는 tempPickedColor로 표시
                     tempPickedColor = selectedCustomColor?.materialColor.color ?? .gray
-                    tempPickedName = selectedCustomColor?.name ?? ""
+                    tempPickedName = selectedCustomColor?.materialColor.name ?? ""
                     showingColorPicker = true
                 } label: {
                     VStack(spacing: 6) {
@@ -88,11 +90,11 @@ struct ColorPickerSectionView: View {
 
                                     let item = UserColorItem(
 
-                                        id: UUID(),
+                                        id: newMaterialColor.id,
 
-                                        materialColor: newMaterialColor,
+                                        materialColor: newMaterialColor
                                         
-                                        name: finalName
+                                        //name: finalName
 
                                     )
 
@@ -105,8 +107,15 @@ struct ColorPickerSectionView: View {
                                     selectedColor = newMaterialColor
                                 } else {
                                     // 용량 초과 시 선택만 갱신
-                                    selectedCustomColor = UserColorItem(id: UUID(), materialColor: selectedColor, name: finalName)
-                                    selectedColor = MaterialColor.from(color: tempPickedColor, name: finalName)
+                                    let tempMaterialColor = MaterialColor.from(color: tempPickedColor, name: finalName)
+                                    let tempItem = UserColorItem(
+                                        id: tempMaterialColor.id,
+                                        materialColor: tempMaterialColor
+                                    )
+                                    selectedCustomColor = tempItem
+                                    selectedColor = tempMaterialColor
+                                    /*selectedCustomColor = UserColorItem(id: UUID(), materialColor: selectedColor, name: finalName)
+                                    selectedColor = MaterialColor.from(color: tempPickedColor, name: finalName)*/
                                 }
                                 tempPickedName = ""
                                 showingColorPicker = false
@@ -134,7 +143,7 @@ struct ColorPickerSectionView: View {
                                             Circle()
                                                 .stroke((selectedCustomColor == item) ? Color.black : Color.primary.opacity(0.2), lineWidth: (selectedCustomColor == item) ? 3 : 1)
                                         )
-                                    Text(item.name)
+                                    Text(item.materialColor.name)
                                         .font(.caption2)
                                         .lineLimit(1)
                                         .frame(width: 52)
@@ -143,7 +152,7 @@ struct ColorPickerSectionView: View {
                                 .frame(height: 64, alignment: .top)
                             }
                             .buttonStyle(.plain)
-                            .accessibilityLabel(Text(item.name))
+                            .accessibilityLabel(Text(item.materialColor.name))
                         }
                     }
                     .frame(height: 64)
@@ -197,10 +206,34 @@ struct ColorPickerSectionView: View {
                                                 }
                                             }
                                             if isEditNameMode {
-                                                TextField("색상 이름", text: $item.name)
-                                                    .textFieldStyle(.roundedBorder)
+                                                TextField(
+                                                    "색상 이름",
+                                                    text: Binding(
+                                                        get: { item.materialColor.name },
+                                                        set: { newValue in
+                                                            // 1️⃣ 팔레트 이름 변경
+                                                            item.materialColor.name = newValue
+                                                            // 2️⃣ 기존 카드 전부 업데이트 (🔥 핵심)
+                                                            for index in materials.indices {
+                                                                if materials[index].color.id == item.materialColor.id {
+                                                                    materials[index].color.name = newValue
+                                                                    materials[index].updatedAt = Date()
+                                                                }
+                                                            }
+                                                            // 3️⃣ 현재 선택 색상 동기화
+                                                            if selectedCustomColor?.id == item.id {
+                                                                selectedCustomColor = item
+                                                                selectedColor = item.materialColor
+                                                            }
+                                                            // 4️⃣ 저장
+                                                            ColorStorageManager.shared.save(userColorItems)
+                                                            MaterialStorageManager.shared.save(materials)
+                                                        }
+                                                    )
+                                                )
+                                                .textFieldStyle(.roundedBorder)
                                             } else {
-                                                Text(item.name)
+                                                Text(item.materialColor.name)
                                             }
                                             Spacer()
                                         }

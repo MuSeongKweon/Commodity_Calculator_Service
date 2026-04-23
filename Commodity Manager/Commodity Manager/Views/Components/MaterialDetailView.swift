@@ -12,6 +12,7 @@ struct MaterialDetailView: View {
 
 //    var material: Material
     @Binding var material: Material
+    @Binding var materials: [Material] // ✅ 추가
 
     // 편집 상태 및 편집용 필드
     @State private var isEditing = false
@@ -99,7 +100,10 @@ struct MaterialDetailView: View {
                 }
                 
                 if isEditing {
-                    ColorPickerSectionView(selectedColor: $editedColor)
+                    ColorPickerSectionView(
+                        selectedColor: $editedColor,
+                        materials: $materials
+                    )
                 }
 
                 if isEditing {
