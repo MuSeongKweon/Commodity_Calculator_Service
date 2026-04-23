@@ -38,10 +38,15 @@ struct AddMaterialView: View {
         }()
         return !materialName.isEmpty && priceIsNumber && priceHasValidLeading && quantityIsInt && quantityHasValidLeading
     }
-
+    
+    
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: Image?
     @State private var selectedUIImage: UIImage?
+    
+    @State private var showImageSourceDialog = false
+    @State private var showImagePicker = false
+    @State private var imageSource: UIImagePickerController.SourceType = .photoLibrary
     
     // 색상 관련
     @State private var selectedColor: MaterialColor = MaterialColor(name: "Custom", red: 0.5, green: 0.5, blue: 0.5, opacity: 1.0)
@@ -55,6 +60,7 @@ struct AddMaterialView: View {
                 VStack(spacing:20){
 
                     // 사진 선택
+                    /* 260423 제거
                     PhotosPicker(selection:$selectedItem,
                                  matching:.images){
 
@@ -71,7 +77,42 @@ struct AddMaterialView: View {
                             }
                             .frame(height:150)
                         }
+                    }*/
+                    Button {
+                        showImageSourceDialog = true
+                    } label: {
+                        if let selectedImage {
+                            selectedImage
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 150)
+                        } else {
+                            VStack {
+                                Image(systemName: "photo")
+                                    .font(.largeTitle)
+                                Text("사진 추가")
+                            }
+                            .frame(height: 150)
+                        }
                     }
+                    .confirmationDialog("이미지 선택", isPresented: $showImageSourceDialog) {
+                        Button("사진 촬영") {
+                            imageSource = .camera
+                            showImagePicker = true
+                        }
+                        Button("앨범에서 선택") {
+                            imageSource = .photoLibrary
+                            showImagePicker = true
+                        }
+                        Button("취소", role: .cancel) {}
+                    }
+                    .sheet(isPresented: $showImagePicker) {
+                        ImagePicker(
+                            sourceType: imageSource,
+                            selectedImage: $selectedUIImage
+                        )
+                    }
+                    /* 260423 제거
                     .onChange(of: selectedItem) { oldValue, newValue in
                         guard let newItem = newValue else { return }
                         Task {
@@ -80,6 +121,12 @@ struct AddMaterialView: View {
                                 selectedUIImage = uiImage
                                 selectedImage = Image(uiImage: uiImage)
                             }
+                        }
+                    }
+                    */
+                    .onChange(of: selectedUIImage) { _, newValue in
+                        if let uiImage = newValue {
+                            selectedImage = Image(uiImage: uiImage)
                         }
                     }
                     

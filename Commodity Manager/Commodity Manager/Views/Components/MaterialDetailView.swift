@@ -21,8 +21,12 @@ struct MaterialDetailView: View {
     @State private var editedQuantity: String = ""
     @State private var editedImage: UIImage? = nil
     @State private var showImagePicker = false
+    // 260423 사진 업로드 관련 추가
+    @State private var showImageSourceDialog = false
+    @State private var imageSource: UIImagePickerController.SourceType = .photoLibrary
+    
     // 🔴 PhotosPicker 상태
-    @State private var selectedItem: PhotosPickerItem?
+    //@State private var selectedItem: PhotosPickerItem?
     
     //❗️색상 편집 추가
     @State private var editedColor: MaterialColor = MaterialColor(name: "Custom", red: 0.5, green: 0.5, blue: 0.5, opacity: 1.0)
@@ -68,11 +72,13 @@ struct MaterialDetailView: View {
                             .cornerRadius(12)
                     }
                     HStack {
-                        // 기존: 수동 시트 토글 방식 (주석 처리)
-                        // Button("사진 변경") { showImagePicker = true }
-                        // 새 구현: PhotosPicker 사용
-                        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                        // 기존 구현: PhotosPicker 사용
+                        /*PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                             Text("사진 변경")
+                        }*/
+                        // 260423 사진관련 수정
+                        Button("사진 변경") {
+                            showImageSourceDialog = true
                         }
                         Spacer()
                         Button("사진 제거") { editedImage = nil }
@@ -247,6 +253,7 @@ struct MaterialDetailView: View {
             }
         }
         // 새 구현: PhotosPicker 선택 변경 시 이미지 로드
+        /* 260423
         .onChange(of: selectedItem) { oldValue, newValue in
             guard let newValue else { return }
             Task {
@@ -255,7 +262,7 @@ struct MaterialDetailView: View {
                     editedImage = uiImage
                 }
             }
-        }
+        }*/
         .onAppear {
             editedName = material.name
             editedStore = material.store
@@ -276,6 +283,25 @@ struct MaterialDetailView: View {
             }()
             isEditedQuantityValid = qtyNumeric && qtyLeadingOK
         }
+        .confirmationDialog("이미지 선택", isPresented: $showImageSourceDialog) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("사진 촬영") {
+                    imageSource = .camera
+                    showImagePicker = true
+                }
+            }
+            Button("앨범에서 선택") {
+                imageSource = .photoLibrary
+                showImagePicker = true
+            }
+            Button("취소", role: .cancel) {}
+        }
+        .fullScreenCover(isPresented: $showImagePicker) {
+            ImagePicker(
+                sourceType: imageSource,
+                selectedImage: $editedImage
+            )
+
+        }
     }
 }
-
