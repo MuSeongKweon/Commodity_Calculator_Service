@@ -130,7 +130,10 @@ struct AddMaterialView: View {
                         }
                     }
                     
-                    ColorPickerSectionView(selectedColor: $selectedColor)
+                    ColorPickerSectionView(
+                        selectedColor: $selectedColor,
+                        materials: $materials
+                    )
 
                     // 재료 이름
                     TextField("재료 이름", text:$materialName)

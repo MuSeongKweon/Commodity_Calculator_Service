@@ -40,7 +40,13 @@ struct ColorFilteredListView: View {
                                 
                                 NavigationLink {
                                     
-                                    MaterialDetailView(material: $materials[index])
+                                    MaterialDetailView(
+
+                                        material: $materials[index],
+
+                                        materials: $materials
+
+                                    )
                                     
                                 } label: {
                                     

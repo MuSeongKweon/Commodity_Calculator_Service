@@ -32,7 +32,7 @@ struct UserColorItem: Identifiable, Equatable {
 
     var materialColor: MaterialColor
     
-    var name: String
+    //var name: String
 
 }
 
@@ -114,7 +114,7 @@ final class ColorStorageManager {
 
                 materialColor: materialColor,
                 
-                name: $0.name
+                //name: $0.name
 
             )
 
