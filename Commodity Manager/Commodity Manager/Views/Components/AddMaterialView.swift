@@ -43,7 +43,6 @@ struct AddMaterialView: View {
     @State private var selectedImage: Image?
     @State private var selectedUIImage: UIImage?
     
-    
     // 색상 관련
     @State private var selectedColor: MaterialColor = MaterialColor(name: "Custom", red: 0.5, green: 0.5, blue: 0.5, opacity: 1.0)
 
@@ -165,6 +164,7 @@ struct AddMaterialView: View {
                                 updatedAt: now
                             )
                             materials.append(newMaterial)
+                            MaterialStorageManager.shared.save(materials) // 🔴 재료 카드 추가 시 저장
                             dismiss()
                         }
 

@@ -43,7 +43,7 @@ struct MainPageView: View {
     @State private var isEditing = false
     @State private var selectedItems = Set<UUID>()
     
-    // 🔴 원자재 계산 기능
+    // 원자재 계산 기능
     @State private var showCalculator = false
     @State private var showSidebar = false
     
@@ -67,6 +67,7 @@ struct MainPageView: View {
         materialsState.removeAll { selectedItems.contains($0.id) }
         selectedItems.removeAll()
         isEditing = false
+        MaterialStorageManager.shared.save(materialsState) // 🔴 재료 카드 삭제 시 업데이트 위함
     }
     
     var filteredMaterials: [Material] {
@@ -77,7 +78,7 @@ struct MainPageView: View {
         )
     }
 
-    // 🔴 색상 그룹 생성
+    // 색상 그룹 생성
     var groupedMaterials: [MaterialColor:[Material]] {
 
         Dictionary(grouping: materialsState) { $0.color }
@@ -253,7 +254,7 @@ struct MainPageView: View {
                      
                 }
                 
-                // 🔴 사이드바
+                // 사이드바
                 if showSidebar {
 
                     HStack {
@@ -337,10 +338,15 @@ struct MainPageView: View {
 
             // 필터 시트
             .sheet(isPresented:$showFilter){
-                FilterView(selectedFilter: $selectedFilter,sortOrder: $sortOrder)   // 🔴 추가
+                FilterView(selectedFilter: $selectedFilter,sortOrder: $sortOrder)
             }
         }
-        
+        .onAppear {
+            materialsState = MaterialStorageManager.shared.load() // 🔴 시작 시 load
+        }
+        .onChange(of: materialsState) { _, newValue in
+            MaterialStorageManager.shared.save(newValue) // 🔴 저장 트리거
+        }
     }
 }
 

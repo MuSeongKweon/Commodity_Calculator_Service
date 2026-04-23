@@ -55,28 +55,16 @@ struct Material: Identifiable, Codable, Equatable, Hashable { //260422 수정
 }
 //260422 수정
 extension Material {
-
     enum CodingKeys: String, CodingKey {
-
         case id
-
         case name
-
         case store
-
         case price
-
         case quantity
-
         case color
-
         case createdAt
-
         case updatedAt
-
         // ❌ image 제외
-
     }
-
 }
 //260422 수정
