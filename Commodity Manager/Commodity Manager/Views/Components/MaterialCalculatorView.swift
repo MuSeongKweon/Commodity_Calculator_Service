@@ -141,7 +141,7 @@ struct MaterialCalculatorView: View {
                         ScrollToTopOverlay(
                             action: {
                                 withAnimation(.easeInOut) {
-                                    // Without ScrollViewReader here, we cannot call proxy. Keep placeholder for future integration.
+                                    proxy.scrollTo("top", anchor: .top)
                                 }
                             },
                             bottomPadding: 16,
