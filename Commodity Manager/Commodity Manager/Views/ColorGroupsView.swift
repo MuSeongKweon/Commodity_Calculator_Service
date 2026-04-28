@@ -94,10 +94,12 @@ struct ColorGroupCell: View {
 
                 Text(color.displayName)
                     .font(.headline)
+                    .foregroundColor(color.readableTextColor) // 260428 추가: 배경 색상 명도/휘도에 따른 글자 색상 변환
 
                 Text("\(count)개")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    //.foregroundColor(.secondary)
+                    .foregroundColor(color.readableSecondaryTextColor) // 260428 추가: 배경 색상 명도/휘도에 따른 글자 색상 변환
             }
             .padding(8)
         }

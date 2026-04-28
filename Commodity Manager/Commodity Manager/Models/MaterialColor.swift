@@ -4,41 +4,6 @@
 //
 //  Created by MuSeong Kweon on 3/5/26.
 //
-/*
- enum MaterialColor: String, CaseIterable, Hashable {
- 
- case gray
- case red
- case orange
- case yellow
- case green
- case blue
- 
- var color: Color {
- 
- switch self {
- 
- case .gray:
- return Color.gray.opacity(0.2)
- 
- case .red:
- return Color.red.opacity(0.25)
- 
- case .orange:
- return Color.orange.opacity(0.25)
- 
- case .yellow:
- return Color.yellow.opacity(0.25)
- 
- case .green:
- return Color.green.opacity(0.25)
- 
- case .blue:
- return Color.blue.opacity(0.25)
- }
- }
- }
- */
 import SwiftUI
 //260422 수정
 struct MaterialColor: Identifiable, Codable, Equatable, Hashable {
@@ -150,5 +115,50 @@ extension MaterialColor {
         #endif
 
     }
+    //선택된 색상의 명도/상대 휘도 계산 기능 추가
+    //글자색을 .black 또는 .white로 자동 판단하는 프로퍼티 추가
+    private var relativeLuminance: Double {
+
+            func linearized(_ value: Double) -> Double {
+
+                if value <= 0.03928 {
+
+                    return value / 12.92
+
+                } else {
+
+                    return pow((value + 0.055) / 1.055, 2.4)
+
+                }
+
+            }
+
+            let r = linearized(red)
+
+            let g = linearized(green)
+
+            let b = linearized(blue)
+
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+        }
+
+        var readableTextColor: Color {
+
+            let luminance = relativeLuminance
+
+            let contrastWithBlack = (luminance + 0.05) / 0.05
+
+            let contrastWithWhite = 1.05 / (luminance + 0.05)
+
+            return contrastWithBlack >= contrastWithWhite ? .black : .white
+
+        }
+
+        var readableSecondaryTextColor: Color {
+
+            readableTextColor.opacity(0.75)
+
+        }
 
 }

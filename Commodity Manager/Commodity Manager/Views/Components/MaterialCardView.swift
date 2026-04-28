@@ -41,19 +41,23 @@ struct MaterialCardView: View {
             // 재료 이름
             Text(material.name)
                 .font(.headline)
+                .foregroundColor(material.color.readableTextColor) //2600428 추가: 명도/휘도에 따른 글 색상 변화
 
             // 구매처
             Text("구매처: \(material.store)")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                //.foregroundColor(.secondary)
+                .foregroundColor(material.color.readableSecondaryTextColor) //2600428 추가: 명도/휘도에 따른 글 색상 변화
 
             // 가격
             Text("가격: \(material.price)")
                 .font(.caption)
+                .foregroundColor(material.color.readableTextColor) //2600428 추가: 명도/휘도에 따른 글 색상 변화
 
             // 수량
             Text("수량: \(material.quantity)")
                 .font(.caption)
+                .foregroundColor(material.color.readableTextColor) //2600428 추가: 명도/휘도에 따른 글 색상 변화
         }
 
         .padding()
