@@ -64,7 +64,8 @@ struct ColorPickerSectionView: View {
                     VStack(spacing: 16) {
                         Text("색상 선택")
                             .font(.headline)
-                        ColorPicker("색상", selection: $tempPickedColor, supportsOpacity: true)
+                        //ColorPicker("색상", selection: $tempPickedColor, supportsOpacity: true)
+                        ColorPicker("색상", selection: $tempPickedColor, supportsOpacity: false) //투명도를 허용하면 실제 카드 배경색이 뒤 배경과 섞이기 때문에, 저장된 RGB만으로 글자색을 정확히 판단하기 어렵습니다.
                             .padding()
 
                         VStack(alignment: .leading, spacing: 6) {
