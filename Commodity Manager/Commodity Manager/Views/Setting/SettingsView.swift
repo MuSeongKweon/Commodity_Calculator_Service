@@ -14,12 +14,28 @@ struct SettingsView: View {
     @State private var showingTerms = false
     @State private var showingPrivacy = false
     
-    //JSON 백업관련
-    @State private var backupDocument = JSONBackupDocument()
-    @State private var showingJSONExporter = false
-    @State private var backupAlertTitle = ""
-    @State private var backupAlertMessage = ""
-    @State private var showingBackupAlert = false
+    // 통합 내보내기 관련
+    enum ExportKind {
+        case json
+        case csv
+    }
+    @State private var exportKind: ExportKind?
+    @State private var exportDocument = ExportDocument()
+    @State private var exportContentType: UTType = .json
+    @State private var exportDefaultFilename = ""
+    @State private var exportAlertTitle = ""
+    @State private var exportAlertMessage = ""
+    @State private var showingExportAlert = false
+    private var showingExporter: Binding<Bool> {
+        Binding(
+            get: { exportKind != nil },
+            set: { isPresented in
+                if !isPresented {
+                    exportKind = nil
+                }
+            }
+        )
+    }
     
     //JSON 복원관련
     @State private var showingJSONImporter = false
@@ -28,13 +44,6 @@ struct SettingsView: View {
     @State private var importAlertTitle = ""
     @State private var importAlertMessage = ""
     @State private var showingImportResultAlert = false
-    
-    //csv 내보내기 관련
-    @State private var csvDocument = CSVExportDocument()
-    @State private var showingCSVExporter = false
-    @State private var exportAlertTitle = ""
-    @State private var exportAlertMessage = ""
-    @State private var showingExportAlert = false
 
     enum AppLanguage: String, CaseIterable, Identifiable {
         case korean = "한국어"
@@ -81,12 +90,14 @@ struct SettingsView: View {
                 Button {
                     do {
                         let data = try AppBackupManager.shared.makeJSONBackupData()
-                        backupDocument = JSONBackupDocument(data: data)
-                        showingJSONExporter = true
+                        exportDocument = ExportDocument(data: data)
+                        exportContentType = .json
+                        exportDefaultFilename = "CommodityManagerBackup"
+                        exportKind = .json
                     } catch {
-                        backupAlertTitle = "백업 생성 실패"
-                        backupAlertMessage = error.localizedDescription
-                        showingBackupAlert = true
+                        exportAlertTitle = "백업 생성 실패"
+                        exportAlertMessage = error.localizedDescription
+                        showingExportAlert = true
                     }
                 } label: {
                     Label("JSON 내보내기", systemImage: "square.and.arrow.up")
@@ -101,8 +112,10 @@ struct SettingsView: View {
                 Button {
                     do {
                         let data = try ExcelExportManager.shared.makeCSVExportData()
-                        csvDocument = CSVExportDocument(data: data)
-                        showingCSVExporter = true
+                        exportDocument = ExportDocument(data: data)
+                        exportContentType = .commaSeparatedText
+                        exportDefaultFilename = "CommodityManager_Export"
+                        exportKind = .csv
                     } catch {
                         exportAlertTitle = "내보내기 실패"
                         exportAlertMessage = error.localizedDescription
@@ -155,27 +168,59 @@ struct SettingsView: View {
                 }
             }
         }
-        //JSON 백업관련
+        .navigationTitle("설정")
+        
         .fileExporter(
-            isPresented: $showingJSONExporter,
-            document: backupDocument,
-            contentType: .json,
-            defaultFilename: "CommodityManagerBackup"
+            isPresented: showingExporter,
+            document: exportDocument,
+            contentType: exportContentType,
+            defaultFilename: exportDefaultFilename
         ) { result in
             switch result {
             case .success:
-                backupAlertTitle = "내보내기 완료"
-                backupAlertMessage = "JSON 백업 파일이 선택한 위치에 저장되었습니다."
+                switch exportKind {
+                case .json:
+                    exportAlertTitle = "내보내기 완료"
+                    exportAlertMessage = "JSON 백업 파일이 선택한 위치에 저장되었습니다."
+                case .csv:
+                    exportAlertTitle = "내보내기 완료"
+                    exportAlertMessage = "Excel에서 열 수 있는 CSV 파일이 저장되었습니다."
+                case .none:
+                    exportAlertTitle = "내보내기 완료"
+                    exportAlertMessage = "파일이 저장되었습니다."
+                }
+
             case .failure(let error):
-                backupAlertTitle = "내보내기 실패"
-                backupAlertMessage = error.localizedDescription
+                exportAlertTitle = "내보내기 실패"
+                exportAlertMessage = error.localizedDescription
             }
-            showingBackupAlert = true
+
+            exportKind = nil
+            showingExportAlert = true
         }
-        .alert(backupAlertTitle, isPresented: $showingBackupAlert) {
-            Button("확인", role: .cancel) { }
-        } message: {
-            Text(backupAlertMessage)
+        //JSON 복원관련
+        .fileImporter(
+            isPresented: $showingJSONImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                do {
+                    let data = try Data(contentsOf: url)
+                    pendingImportData = data
+                    showingImportConfirmAlert = true
+                } catch {
+                    importAlertTitle = "불러오기 실패"
+                    importAlertMessage = error.localizedDescription
+                    showingImportResultAlert = true
+                }
+            case .failure(let error):
+                importAlertTitle = "불러오기 실패"
+                importAlertMessage = error.localizedDescription
+                showingImportResultAlert = true
+            }
         }
         
         .alert("기존 데이터를 교체할까요?", isPresented: $showingImportConfirmAlert) {
@@ -205,57 +250,12 @@ struct SettingsView: View {
         } message: {
             Text(importAlertMessage)
         }
-        
-        //JSON 복원관련
-        .fileImporter(
-            isPresented: $showingJSONImporter,
-            allowedContentTypes: [.json],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                do {
-                    let data = try Data(contentsOf: url)
-                    pendingImportData = data
-                    showingImportConfirmAlert = true
-                } catch {
-                    importAlertTitle = "불러오기 실패"
-                    importAlertMessage = error.localizedDescription
-                    showingImportResultAlert = true
-                }
-            case .failure(let error):
-                importAlertTitle = "불러오기 실패"
-                importAlertMessage = error.localizedDescription
-                showingImportResultAlert = true
-            }
-        }
-        
-        //csv 내보내기 관련
-        .fileExporter(
-            isPresented: $showingCSVExporter,
-            document: csvDocument,
-            contentType: .commaSeparatedText,
-            defaultFilename: "CommodityManager_Export"
-        ) { result in
-            switch result {
-            case .success:
-                exportAlertTitle = "내보내기 완료"
-                exportAlertMessage = "Excel에서 열 수 있는 CSV 파일이 저장되었습니다."
-            case .failure(let error):
-                exportAlertTitle = "내보내기 실패"
-                exportAlertMessage = error.localizedDescription
-            }
-
-            showingExportAlert = true
-        }
         .alert(exportAlertTitle, isPresented: $showingExportAlert) {
             Button("확인", role: .cancel) { }
         } message: {
             Text(exportAlertMessage)
         }
-        
-        .navigationTitle("설정")
+
         .sheet(isPresented: $showingTerms) {
             LegalDocumentView(
                 title: "이용 약관",
