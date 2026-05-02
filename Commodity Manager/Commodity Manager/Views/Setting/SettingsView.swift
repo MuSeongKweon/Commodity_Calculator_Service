@@ -208,6 +208,12 @@ struct SettingsView: View {
             case .success(let urls):
                 guard let url = urls.first else { return }
                 do {
+                    let accessGranted = url.startAccessingSecurityScopedResource()
+                    defer {
+                        if accessGranted {
+                            url.stopAccessingSecurityScopedResource()
+                        }
+                    }
                     let data = try Data(contentsOf: url)
                     pendingImportData = data
                     showingImportConfirmAlert = true
