@@ -83,6 +83,26 @@ struct MainPageView: View {
 
         Dictionary(grouping: materialsState) { $0.color }
     }
+    
+    private var sidebarMenu: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            NavigationLink {
+                MaterialCalculatorView(materials: $materialsState)
+            } label: {
+                Label("원자재 계산", systemImage: "")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+            }
+            NavigationLink {
+                SettingsView()
+            } label: {
+                Label("설정", systemImage: "gearshape")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+            }
+            Spacer()
+        }
+    }
 
     var body: some View {
 
@@ -271,18 +291,7 @@ struct MainPageView: View {
 
                     HStack {
 
-                        VStack(alignment: .leading, spacing: 20) {
-
-                            NavigationLink {
-                                MaterialCalculatorView(materials: $materialsState)
-                            } label: {
-                                Text("원자재 계산")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                            }
-
-                            Spacer()
-                        }
+                        sidebarMenu
                         .padding()
                         .frame(width: 150)
                         .background(Color.white)
