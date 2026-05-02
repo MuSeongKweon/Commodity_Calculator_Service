@@ -26,6 +26,9 @@ struct ColorPickerSectionView: View {
     @State private var isDeleteMode: Bool = false
     @State private var selectionForDelete: Set<UUID> = []
     @State private var isEditNameMode: Bool = false
+    
+    @State private var draftColorNames: [UUID: String] = [:]
+    @FocusState private var focusedColorNameID: UUID?
 
     var body: some View {
 
@@ -208,30 +211,38 @@ struct ColorPickerSectionView: View {
                                             }
                                             if isEditNameMode {
                                                 TextField(
+
                                                     "색상 이름",
+
                                                     text: Binding(
-                                                        get: { item.materialColor.name },
+
+                                                        get: {
+
+                                                            draftColorNames[item.id] ?? item.materialColor.name
+
+                                                        },
+
                                                         set: { newValue in
-                                                            // 1️⃣ 팔레트 이름 변경
-                                                            item.materialColor.name = newValue
-                                                            // 2️⃣ 기존 카드 전부 업데이트 (🔥 핵심)
-                                                            for index in materials.indices {
-                                                                if materials[index].color.id == item.materialColor.id {
-                                                                    materials[index].color.name = newValue
-                                                                    materials[index].updatedAt = Date()
-                                                                }
-                                                            }
-                                                            // 3️⃣ 현재 선택 색상 동기화
-                                                            if selectedCustomColor?.id == item.id {
-                                                                selectedCustomColor = item
-                                                                selectedColor = item.materialColor
-                                                            }
-                                                            // 4️⃣ 저장
-                                                            ColorStorageManager.shared.save(userColorItems)
-                                                            MaterialStorageManager.shared.save(materials)
+
+                                                            draftColorNames[item.id] = newValue
+
                                                         }
+
                                                     )
+
                                                 )
+
+                                                .textFieldStyle(.roundedBorder)
+
+                                                .focused($focusedColorNameID, equals: item.id)
+
+                                                .submitLabel(.done)
+
+                                                .onSubmit {
+
+                                                    focusedColorNameID = nil
+
+                                                }
                                                 .textFieldStyle(.roundedBorder)
                                             } else {
                                                 Text(item.materialColor.name)
@@ -269,10 +280,33 @@ struct ColorPickerSectionView: View {
                                         }
                                     } else {
                                         Button(isEditNameMode ? "완료" : "수정") {
+
                                             if isEditNameMode {
-                                                    ColorStorageManager.shared.save(userColorItems) // ⭐ 추가
-                                                }
-                                            isEditNameMode.toggle()
+
+                                                focusedColorNameID = nil
+
+                                                commitColorNameEdits()
+
+                                                isEditNameMode = false
+
+                                            } else {
+
+                                                draftColorNames = Dictionary(
+
+                                                    uniqueKeysWithValues: userColorItems.map {
+
+                                                        ($0.id, $0.materialColor.name)
+
+                                                    }
+
+                                                )
+
+                                                isDeleteMode = false
+
+                                                isEditNameMode = true
+
+                                            }
+
                                         }
                                     }
                                 }
@@ -293,5 +327,52 @@ struct ColorPickerSectionView: View {
         .onAppear {
             userColorItems = ColorStorageManager.shared.load()
         }
+    }
+    private func commitColorNameEdits() {
+
+        for index in userColorItems.indices {
+
+            let id = userColorItems[index].id
+
+            guard let newName = draftColorNames[id]?.trimmingCharacters(in: .whitespacesAndNewlines),
+
+                  !newName.isEmpty else {
+
+                continue
+
+            }
+
+            let colorID = userColorItems[index].materialColor.id
+
+            userColorItems[index].materialColor.name = newName
+
+            for materialIndex in materials.indices {
+
+                if materials[materialIndex].color.id == colorID {
+
+                    materials[materialIndex].color.name = newName
+
+                    materials[materialIndex].updatedAt = Date()
+
+                }
+
+            }
+
+            if selectedCustomColor?.id == id {
+
+                selectedCustomColor = userColorItems[index]
+
+                selectedColor = userColorItems[index].materialColor
+
+            }
+
+        }
+
+        ColorStorageManager.shared.save(userColorItems)
+
+        MaterialStorageManager.shared.save(materials)
+
+        draftColorNames.removeAll()
+
     }
 }

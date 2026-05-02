@@ -3,6 +3,7 @@ import SwiftUI
 struct ColorGroupsView: View {
 
     let groups: [MaterialColor: [Material]]
+    
     // 🔴 이거 추가
     @Binding var selectedColorFilter: MaterialColor?
     @Binding var materials: [Material]   // 🔴 추가

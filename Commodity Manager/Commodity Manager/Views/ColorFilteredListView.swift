@@ -28,6 +28,19 @@ struct ColorFilteredListView: View {
         selectedItems.removeAll()
         isEditing = false
     }
+    func toggleSelection(_ id: UUID) {
+
+        if selectedItems.contains(id) {
+
+            selectedItems.remove(id)
+
+        } else {
+
+            selectedItems.insert(id)
+
+        }
+
+    }
 
     var body: some View {
         ZStack {
@@ -45,47 +58,57 @@ struct ColorFilteredListView: View {
                                 
                                 if let index = materials.firstIndex(where: { $0.id == item.id }) {
                                     
-                                    NavigationLink {
-                                        
-                                        MaterialDetailView(
+                                    if isEditing {
 
-                                            material: $materials[index],
-
-                                            materials: $materials
-
-                                        )
-                                        
-                                    } label: {
-                                        
                                         ZStack(alignment: .topTrailing) {
-                                            
+
                                             MaterialCardView(material: item)
-                                            
-                                            // 🔴 선택 체크 UI
-                                            if isEditing {
-                                                
-                                                Button {
-                                                    
-                                                    if selectedItems.contains(item.id) {
-                                                        selectedItems.remove(item.id)
-                                                    } else {
-                                                        selectedItems.insert(item.id)
-                                                    }
-                                                    
-                                                } label: {
-                                                    
-                                                    Image(systemName:
-                                                            selectedItems.contains(item.id)
-                                                          ? "checkmark.circle.fill"
-                                                          : "circle")
-                                                    .font(.title2)
-                                                    .foregroundColor(.blue)
-                                                    .padding(6)
-                                                }
-                                            }
+
+                                            Image(systemName:
+
+                                                    selectedItems.contains(item.id)
+
+                                                    ? "checkmark.circle.fill"
+
+                                                    : "circle")
+
+                                                .font(.title2)
+
+                                                .foregroundColor(.blue)
+
+                                                .padding(6)
+
                                         }
+
+                                        .contentShape(Rectangle())
+
+                                        .onTapGesture {
+
+                                            toggleSelection(item.id)
+
+                                        }
+
+                                    } else {
+
+                                        NavigationLink {
+
+                                            MaterialDetailView(
+
+                                                material: $materials[index],
+
+                                                materials: $materials
+
+                                            )
+
+                                        } label: {
+
+                                            MaterialCardView(material: item)
+
+                                        }
+
+                                        .buttonStyle(.plain)
+
                                     }
-                                    .buttonStyle(.plain)
                                 }
                             }
                         }

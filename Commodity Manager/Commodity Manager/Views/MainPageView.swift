@@ -69,6 +69,19 @@ struct MainPageView: View {
         isEditing = false
         MaterialStorageManager.shared.save(materialsState) // 🔴 재료 카드 삭제 시 업데이트 위함
     }
+    func toggleSelection(_ id: UUID) {
+
+        if selectedItems.contains(id) {
+
+            selectedItems.remove(id)
+
+        } else {
+
+            selectedItems.insert(id)
+
+        }
+
+    }
     
     var filteredMaterials: [Material] {
         MaterialSortHelper.sortedMaterials(
@@ -139,71 +152,106 @@ struct MainPageView: View {
                                     ) { item in
 
                                         if let index = materialsState.firstIndex(where: { $0.id == item.id }) {
-                                            NavigationLink(destination: MaterialDetailView(
-                                                
-                                                material: $materialsState[index],
-                                                
-                                                materials: $materialsState
-                                                
-                                            )) {
+                                            if isEditing {
 
-                                                ZStack(alignment:.topTrailing){
+                                                ZStack(alignment: .topTrailing) {
 
                                                     MaterialCardView(material: item)
 
-                                                    if isEditing{
-                                                        Button(action:{
-                                                            if selectedItems.contains(item.id){
-                                                                selectedItems.remove(item.id)
-                                                            } else{
-                                                                selectedItems.insert(item.id)
-                                                            }
-                                                        }){
-                                                            Image(systemName:
-                                                                    selectedItems.contains(item.id)
-                                                                    ? "checkmark.circle.fill"
-                                                                    : "circle")
-                                                                .font(.title2)
-                                                                .foregroundColor(.blue)
-                                                                .padding(6)
-                                                        }
-                                                    }
+                                                    Image(systemName:
+
+                                                            selectedItems.contains(item.id)
+
+                                                            ? "checkmark.circle.fill"
+
+                                                            : "circle")
+
+                                                        .font(.title2)
+
+                                                        .foregroundColor(.blue)
+
+                                                        .padding(6)
+
                                                 }
+
+                                                .contentShape(Rectangle())
+
+                                                .onTapGesture {
+
+                                                    toggleSelection(item.id)
+
+                                                }
+
+                                            } else {
+
+                                                NavigationLink(destination: MaterialDetailView(
+
+                                                    material: $materialsState[index],
+
+                                                    materials: $materialsState
+
+                                                )) {
+
+                                                    MaterialCardView(material: item)
+
+                                                }
+
+                                                .buttonStyle(.plain)
+
                                             }
-                                            .buttonStyle(.plain)
                                              
                                         } else {
-                                            // Fallback: 바인딩을 찾지 못한 경우 읽기 전용으로 표시
-                                            NavigationLink(destination: MaterialDetailView(
-                                                
-                                                material: .constant(item),
-                                                
-                                                materials: $materialsState
-                                                
-                                            )) {
-                                                ZStack(alignment:.topTrailing){
+                                            
+                                            // Fallback: 바인딩을 찾지 못한 경우
+
+                                            if isEditing {
+
+                                                ZStack(alignment: .topTrailing) {
+
                                                     MaterialCardView(material: item)
-                                                    if isEditing{
-                                                        Button(action:{
-                                                            if selectedItems.contains(item.id){
-                                                                selectedItems.remove(item.id)
-                                                            } else{
-                                                                selectedItems.insert(item.id)
-                                                            }
-                                                        }){
-                                                            Image(systemName:
-                                                                    selectedItems.contains(item.id)
-                                                                    ? "checkmark.circle.fill"
-                                                                    : "circle")
-                                                                .font(.title2)
-                                                                .foregroundColor(.blue)
-                                                                .padding(6)
-                                                        }
-                                                    }
+
+                                                    Image(systemName:
+
+                                                            selectedItems.contains(item.id)
+
+                                                            ? "checkmark.circle.fill"
+
+                                                            : "circle")
+
+                                                        .font(.title2)
+
+                                                        .foregroundColor(.blue)
+
+                                                        .padding(6)
+
                                                 }
+
+                                                .contentShape(Rectangle())
+
+                                                .onTapGesture {
+
+                                                    toggleSelection(item.id)
+
+                                                }
+
+                                            } else {
+
+                                                NavigationLink(destination: MaterialDetailView(
+
+                                                    material: .constant(item),
+
+                                                    materials: $materialsState
+
+                                                )) {
+
+                                                    MaterialCardView(material: item)
+
+                                                }
+
+                                                .buttonStyle(.plain)
+
                                             }
-                                            .buttonStyle(.plain)
-                                             
+
                                         }
 
                                     }
